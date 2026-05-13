@@ -21,19 +21,22 @@ final class AppModel: ObservableObject {
     private let entityCache = EntityCache()
     private let speedMonitor = SpeedMonitor()
     private var liveTranscriptionSession: LiveTranscriptionSession?
+    private var liveTranscriptionSessions: [LiveTranscriptionSession] = []
     private var captionDisplayTask: Task<Void, Never>?
     private var captionTranslationTasks: [UUID: Task<Void, Never>] = [:]
     private var pendingCaptions: [QueuedCaption] = []
     private var readyCaptionTranslations: [UUID: String] = [:]
     private var captionTranslationWaiters: [UUID: [UUID: CheckedContinuation<String?, Never>]] = [:]
     private var displayedCaption: QueuedCaption?
-    private var activeInputLanguageID: String?
     private var isBootstrapping = true
     private var usesSystemInterfaceLanguage = true
     private var draftTranslationTask: Task<Void, Never>?
     private var draftClearTask: Task<Void, Never>?
     private var committedCaptionArchiveTask: Task<Void, Never>?
     private var languageResourcePreparationTask: Task<Void, Never>?
+    private var activeDraftSourceLanguageID: String?
+    private var activeDraftTargetLanguageID: String?
+    private var lastDraftSourceID: String?
     private var lastDraftStablePrefix = ""
     private var lastDraftTranslationSource = ""
     private var lastDraftTranslationPromotionID: UUID?
@@ -69,11 +72,42 @@ final class AppModel: ObservableObject {
         }
     }
 
+    @Published var selectedSourceIDs: Set<String> {
+        didSet {
+            let primarySourceID = preferredPrimarySourceID(for: selectedSourceIDs)
+            if selectedSourceID != primarySourceID {
+                selectedSourceID = primarySourceID
+            }
+            persistSettings()
+            syncOverlayPreviewIfNeeded()
+        }
+    }
+
     @Published var inputLanguageID: String {
         didSet {
             persistSettings()
             syncOverlayPreviewIfNeeded()
             scheduleSelectedLanguageResourcePreparation(openSystemSettingsIfNeeded: true)
+        }
+    }
+
+    @Published var sourceLanguageOverrides: [String: String] {
+        didSet {
+            persistSettings()
+            syncOverlayPreviewIfNeeded()
+            if sessionState != .running {
+                scheduleSelectedLanguageResourcePreparation(openSystemSettingsIfNeeded: true)
+            }
+        }
+    }
+
+    @Published var sourceOutputLanguageOverrides: [String: String] {
+        didSet {
+            persistSettings()
+            syncOverlayPreviewIfNeeded()
+            if sessionState != .running {
+                scheduleSelectedLanguageResourcePreparation(openSystemSettingsIfNeeded: true)
+            }
         }
     }
 
@@ -133,6 +167,15 @@ final class AppModel: ObservableObject {
 
         let settings = settingsStore.load()
         self.selectedSourceID = settings.selectedSourceID
+        var initialSelectedSourceIDs = Set(settings.selectedSourceIDs)
+        if initialSelectedSourceIDs.isEmpty, let selectedSourceID = settings.selectedSourceID {
+            initialSelectedSourceIDs = [selectedSourceID]
+        }
+        self.selectedSourceIDs = initialSelectedSourceIDs
+        self.sourceLanguageOverrides = settings.sourceLanguageOverrides.mapValues {
+            LanguageCatalog.supportedSpeechInputLanguageID(for: $0)
+        }
+        self.sourceOutputLanguageOverrides = settings.sourceOutputLanguageOverrides
         self.inputLanguageID = LanguageCatalog.supportedSpeechInputLanguageID(for: settings.inputLanguageID)
         self.outputLanguageID = settings.outputLanguageID
         self.usesSystemInterfaceLanguage = settings.interfaceLanguageID == nil
@@ -174,6 +217,92 @@ final class AppModel: ObservableObject {
         allSources.first(where: { $0.id == selectedSourceID })
     }
 
+    var selectedSources: [InputSource] {
+        let selectedSourceIDs = self.selectedSourceIDs
+        guard selectedSourceIDs.isEmpty == false else {
+            return selectedSource.map { [$0] } ?? []
+        }
+
+        return allSources.filter { selectedSourceIDs.contains($0.id) }
+    }
+
+    var selectedSourceDisplayName: String {
+        let names = selectedSources.map(\.name)
+        switch names.count {
+        case 0:
+            return localized(.selectedSource)
+        case 1:
+            return names[0]
+        default:
+            if selectedSources.count == allSources.count, allSources.isEmpty == false {
+                return localized(.allSources)
+            }
+            return AppLocalization.multipleSourcesText(
+                count: names.count,
+                languageID: resolvedInterfaceLanguageID
+            )
+        }
+    }
+
+    func languageID(for source: InputSource) -> String {
+        sourceLanguageOverrides[source.id] ?? inputLanguageID
+    }
+
+    func languageOverrideID(for source: InputSource) -> String? {
+        sourceLanguageOverrides[source.id]
+    }
+
+    func setLanguageID(_ languageID: String, for source: InputSource) {
+        var overrides = sourceLanguageOverrides
+        let normalizedLanguageID = LanguageCatalog.supportedSpeechInputLanguageID(for: languageID)
+        if normalizedLanguageID == inputLanguageID {
+            overrides.removeValue(forKey: source.id)
+        } else {
+            overrides[source.id] = normalizedLanguageID
+        }
+        sourceLanguageOverrides = overrides
+    }
+
+    func setLanguageOverrideID(_ languageID: String?, for source: InputSource) {
+        guard let languageID else {
+            var overrides = sourceLanguageOverrides
+            overrides.removeValue(forKey: source.id)
+            sourceLanguageOverrides = overrides
+            return
+        }
+
+        setLanguageID(languageID, for: source)
+    }
+
+    func outputLanguageIDForSource(_ source: InputSource) -> String {
+        sourceOutputLanguageOverrides[source.id] ?? outputLanguageID
+    }
+
+    func outputLanguageOverrideID(for source: InputSource) -> String? {
+        sourceOutputLanguageOverrides[source.id]
+    }
+
+    func setOutputLanguageID(_ languageID: String, for source: InputSource) {
+        var overrides = sourceOutputLanguageOverrides
+        if languageID == outputLanguageID {
+            overrides.removeValue(forKey: source.id)
+        } else {
+            overrides[source.id] = languageID
+        }
+        sourceOutputLanguageOverrides = overrides
+    }
+
+    func setOutputLanguageOverrideID(_ languageID: String?, for source: InputSource) {
+        guard let languageID else {
+            var overrides = sourceOutputLanguageOverrides
+            overrides.removeValue(forKey: source.id)
+            sourceOutputLanguageOverrides = overrides
+            return
+        }
+
+        setOutputLanguageID(languageID, for: source)
+    }
+
     var sessionButtonTitle: String {
         if sessionState == .running {
             return localized(.stop)
@@ -203,7 +332,7 @@ final class AppModel: ObservableObject {
             return false
         }
 
-        return selectedSource == nil
+        return selectedSources.isEmpty
             || isPreparingSelectedLanguageResources
             || hasBlockingLanguageResourceStatuses
     }
@@ -352,20 +481,24 @@ final class AppModel: ObservableObject {
         }
 
         let availableSources = snapshot.applications + snapshot.microphones
+        let availableSourceIDs = Set(availableSources.map(\.id))
+        let retainedSelectedSourceIDs = selectedSourceIDs.intersection(availableSourceIDs)
 
-        if let selectedSourceID, availableSources.contains(where: { $0.id == selectedSourceID }) == false {
-            self.selectedSourceID = availableSources.first?.id
-        } else if selectedSourceID == nil {
-            selectedSourceID = availableSources.first?.id
+        if retainedSelectedSourceIDs != selectedSourceIDs {
+            selectedSourceIDs = retainedSelectedSourceIDs
         }
 
-        let selectedSourceName = availableSources
-            .first(where: { $0.id == selectedSourceID })?
-            .name
-            ?? localized(.selectedSource)
+        if selectedSourceIDs.isEmpty, let firstSourceID = availableSources.first?.id {
+            selectedSourceIDs = [firstSourceID]
+        }
+
+        let primarySourceID = preferredPrimarySourceID(for: selectedSourceIDs)
+        if selectedSourceID != primarySourceID {
+            selectedSourceID = primarySourceID
+        }
 
         if sessionState == .running {
-            setStatus(.running(sourceName: selectedSourceName))
+            setStatus(.running(sourceName: selectedSourceDisplayName))
         } else {
             setStatus(availableSources.isEmpty ? .noInputSourcesDetected : .ready)
         }
@@ -384,11 +517,13 @@ final class AppModel: ObservableObject {
     func startSession() async {
         refreshSources()
 
-        guard let selectedSource else {
+        let selectedSources = self.selectedSources
+        guard selectedSources.isEmpty == false else {
             sessionState = .error
             setStatus(.chooseInputSourceBeforeStarting)
             return
         }
+        let selectedSourceName = selectedSourceDisplayName
 
         resetLiveTextPipeline()
         setStatus(.checkingLanguageResources)
@@ -401,56 +536,78 @@ final class AppModel: ObservableObject {
         let previousTranscriptEntries = transcriptEntries
         let previousTranscriptInputLanguageID = transcriptInputLanguageID
         let previousTranscriptOutputLanguageID = transcriptOutputLanguageID
+        let selectedInputLanguageIDs = Set(selectedSources.map { languageID(for: $0) })
+        let selectedOutputLanguageIDs = Set(selectedSources.map { outputLanguageIDForSource($0) })
         resetTranscript(
-            sourceLanguageID: inputLanguageID,
-            targetLanguageID: outputLanguageID
+            sourceLanguageID: selectedInputLanguageIDs.count == 1 ? selectedInputLanguageIDs.first! : inputLanguageID,
+            targetLanguageID: selectedOutputLanguageIDs.count == 1 ? selectedOutputLanguageIDs.first! : outputLanguageID
         )
 
-        activeInputLanguageID = inputLanguageID
         isOverlayVisible = true
         overlayState = OverlayPreviewState(
             translatedText: listeningPlaceholderText,
-            sourceText: localized(.waitingForAudioFromFormat, selectedSource.name),
-            sourceName: selectedSource.name
+            sourceText: localized(.waitingForAudioFromFormat, selectedSourceName),
+            sourceName: selectedSourceName
         )
         overlayHistoryScrollOffset = 0
-        setStatus(.preparing(sourceName: selectedSource.name))
+        setStatus(.preparing(sourceName: selectedSourceName))
 
-        let session = LiveTranscriptionSession()
-        liveTranscriptionSession = session
         let config = ModeConfig.config(for: subtitleMode)
-        let speechLocaleIdentifier = LanguageCatalog.speechLocaleIdentifier(for: inputLanguageID)
         let recognitionHints = recognitionContextualStrings()
+        var startedSessions: [LiveTranscriptionSession] = []
 
         do {
-            try await session.start(
-                source: selectedSource,
-                localeIdentifier: speechLocaleIdentifier,
-                interfaceLanguageID: resolvedInterfaceLanguageID,
-                modeConfig: config,
-                contextualStrings: recognitionHints,
-                transcriptHandler: { [weak self] sentence in
-                    self?.enqueueRecognizedSentence(sentence, sourceName: selectedSource.name)
-                },
-                partialHandler: { [weak self] draft in
-                    self?.handlePartialDraft(draft)
-                },
-                errorHandler: { [weak self] message in
-                    self?.sessionState = .error
-                    self?.setStatus(.custom(message))
-                    self?.overlayState = OverlayPreviewState(
-                        translatedText: self?.captureStoppedText ?? "",
-                        sourceText: message,
-                        sourceName: selectedSource.name
-                    )
-                }
-            )
+            for source in selectedSources {
+                let sourceLanguageID = languageID(for: source)
+                let targetLanguageID = outputLanguageIDForSource(source)
+                let session = LiveTranscriptionSession()
+                try await session.start(
+                    source: source,
+                    localeIdentifier: LanguageCatalog.speechLocaleIdentifier(for: sourceLanguageID),
+                    interfaceLanguageID: resolvedInterfaceLanguageID,
+                    modeConfig: config,
+                    contextualStrings: recognitionHints,
+                    transcriptHandler: { [weak self] sentence in
+                        self?.enqueueRecognizedSentence(
+                            sentence,
+                            source: source,
+                            sourceLanguageID: sourceLanguageID,
+                            targetLanguageID: targetLanguageID
+                        )
+                    },
+                    partialHandler: { [weak self] draft in
+                        self?.handlePartialDraft(
+                            draft,
+                            source: source,
+                            sourceLanguageID: sourceLanguageID,
+                            targetLanguageID: targetLanguageID
+                        )
+                    },
+                    errorHandler: { [weak self] message in
+                        self?.sessionState = .error
+                        self?.setStatus(.custom(message))
+                        self?.overlayState = OverlayPreviewState(
+                            translatedText: self?.captureStoppedText ?? "",
+                            sourceText: message,
+                            sourceName: source.name
+                        )
+                    }
+                )
+                startedSessions.append(session)
+            }
+
+            liveTranscriptionSessions = startedSessions
+            liveTranscriptionSession = startedSessions.first
 
             sessionState = .running
-            setStatus(.running(sourceName: selectedSource.name))
+            setStatus(.running(sourceName: selectedSourceName))
         } catch {
+            for session in startedSessions {
+                session.stop()
+            }
             resetLiveTextPipeline()
             liveTranscriptionSession = nil
+            liveTranscriptionSessions.removeAll()
             restoreTranscript(
                 entries: previousTranscriptEntries,
                 sourceLanguageID: previousTranscriptInputLanguageID,
@@ -462,7 +619,7 @@ final class AppModel: ObservableObject {
             overlayState = OverlayPreviewState(
                 translatedText: unableToStartText,
                 sourceText: localizedError,
-                sourceName: selectedSource.name
+                sourceName: selectedSourceName
             )
             overlayHistoryScrollOffset = 0
         }
@@ -470,12 +627,23 @@ final class AppModel: ObservableObject {
 
     func stopSession() {
         resetLiveTextPipeline()
-        liveTranscriptionSession?.stop()
-        liveTranscriptionSession = nil
+        stopLiveTranscriptionSessions()
         sessionState = .idle
         setStatus(allSources.isEmpty ? .noInputSourcesDetected : .ready)
         isOverlayVisible = false
         overlayState = nil
+    }
+
+    private func stopLiveTranscriptionSessions() {
+        if liveTranscriptionSessions.isEmpty {
+            liveTranscriptionSession?.stop()
+        } else {
+            for session in liveTranscriptionSessions {
+                session.stop()
+            }
+        }
+        liveTranscriptionSessions.removeAll()
+        liveTranscriptionSession = nil
     }
 
     func showOverlayPreview() {
@@ -531,6 +699,9 @@ final class AppModel: ObservableObject {
 
         let settings = AppSettings(
             selectedSourceID: selectedSourceID,
+            selectedSourceIDs: orderedSelectedSourceIDs(),
+            sourceLanguageOverrides: sourceLanguageOverrides,
+            sourceOutputLanguageOverrides: sourceOutputLanguageOverrides,
             inputLanguageID: inputLanguageID,
             outputLanguageID: outputLanguageID,
             interfaceLanguageID: usesSystemInterfaceLanguage ? nil : interfaceLanguageID,
@@ -565,6 +736,56 @@ final class AppModel: ObservableObject {
         LanguageCatalog.displayName(for: identifier, in: resolvedInterfaceLanguageID)
     }
 
+    private func preferredPrimarySourceID(for selectedSourceIDs: Set<String>) -> String? {
+        if let selectedSourceID, selectedSourceIDs.contains(selectedSourceID) {
+            return selectedSourceID
+        }
+
+        return allSources.first(where: { selectedSourceIDs.contains($0.id) })?.id
+    }
+
+    private func orderedSelectedSourceIDs() -> [String] {
+        let orderedSourceIDs = allSources.map(\.id).filter { selectedSourceIDs.contains($0) }
+        let remainingSourceIDs = selectedSourceIDs.subtracting(Set(orderedSourceIDs)).sorted()
+        return orderedSourceIDs + remainingSourceIDs
+    }
+
+    private func selectedResourcePreparationRequirements() -> (
+        speechLanguageIDs: [String],
+        translationPairs: [LanguagePairRequirement]
+    ) {
+        let selectedSources = self.selectedSources
+        guard selectedSources.isEmpty == false else {
+            let translationPairs = inputLanguageID == outputLanguageID
+                ? []
+                : [LanguagePairRequirement(sourceLanguageID: inputLanguageID, targetLanguageID: outputLanguageID)]
+            return ([inputLanguageID], translationPairs)
+        }
+
+        let speechLanguageIDs = Set(selectedSources.map { languageID(for: $0) }).sorted()
+        let translationPairs = Set(
+            selectedSources.compactMap { source -> LanguagePairRequirement? in
+                let sourceLanguageID = languageID(for: source)
+                let targetLanguageID = outputLanguageIDForSource(source)
+                guard sourceLanguageID != targetLanguageID else {
+                    return nil
+                }
+                return LanguagePairRequirement(
+                    sourceLanguageID: sourceLanguageID,
+                    targetLanguageID: targetLanguageID
+                )
+            }
+        )
+        .sorted {
+            if $0.sourceLanguageID == $1.sourceLanguageID {
+                return $0.targetLanguageID < $1.targetLanguageID
+            }
+            return $0.sourceLanguageID < $1.sourceLanguageID
+        }
+
+        return (speechLanguageIDs, translationPairs)
+    }
+
     @available(macOS 15.0, *)
     func runTranslationHost(using session: TranslationSession) async {
         await translationCoordinator.run(using: session)
@@ -582,8 +803,7 @@ final class AppModel: ObservableObject {
             return
         }
 
-        let inputLanguageID = self.inputLanguageID
-        let outputLanguageID = self.outputLanguageID
+        let requirements = selectedResourcePreparationRequirements()
 
         languageResourcePreparationTask?.cancel()
         languageResourceStatuses = []
@@ -596,8 +816,8 @@ final class AppModel: ObservableObject {
             defer { self.languageResourcePreparationTask = nil }
 
             await self.prepareSelectedLanguageResources(
-                inputLanguageID: inputLanguageID,
-                outputLanguageID: outputLanguageID,
+                speechLanguageIDs: requirements.speechLanguageIDs,
+                translationPairs: requirements.translationPairs,
                 openSystemSettingsIfNeeded: openSystemSettingsIfNeeded
             )
 
@@ -629,29 +849,31 @@ final class AppModel: ObservableObject {
     }
 
     private func prepareSelectedLanguageResources(
-        inputLanguageID: String,
-        outputLanguageID: String,
+        speechLanguageIDs: [String],
+        translationPairs: [LanguagePairRequirement],
         openSystemSettingsIfNeeded: Bool
     ) async {
         var destinationsToOpen = Set<LanguageResourceSystemSettingsDestination>()
         await withTaskGroup(of: LanguageResourceSystemSettingsDestination?.self) { group in
-            group.addTask { [weak self] in
-                guard let self else {
-                    return nil
-                }
+            for speechLanguageID in speechLanguageIDs {
+                group.addTask { [weak self] in
+                    guard let self else {
+                        return nil
+                    }
 
-                return await self.prepareSpeechRecognitionResourceIfNeeded(for: inputLanguageID)
+                    return await self.prepareSpeechRecognitionResourceIfNeeded(for: speechLanguageID)
+                }
             }
 
-            if inputLanguageID != outputLanguageID {
+            for translationPair in translationPairs {
                 group.addTask { [weak self] in
                     guard let self else {
                         return nil
                     }
 
                     return await self.prepareTranslationResourceIfNeeded(
-                        from: inputLanguageID,
-                        to: outputLanguageID
+                        from: translationPair.sourceLanguageID,
+                        to: translationPair.targetLanguageID
                     )
                 }
             }
@@ -1127,7 +1349,12 @@ final class AppModel: ObservableObject {
 
     // MARK: - Draft handler
 
-    private func handlePartialDraft(_ draft: DraftSegment?) {
+    private func handlePartialDraft(
+        _ draft: DraftSegment?,
+        source: InputSource,
+        sourceLanguageID: String,
+        targetLanguageID: String
+    ) {
         guard liveTranscriptionSession != nil else { return }
         if let draft, isFinalizedDraftPromotionID(draft.segmentId) {
             return
@@ -1145,9 +1372,12 @@ final class AppModel: ObservableObject {
 
         cancelCommittedCaptionArchive()
         cancelPendingDraftClear()
+        activeDraftSourceLanguageID = sourceLanguageID
+        activeDraftTargetLanguageID = targetLanguageID
         overlayState?.draftSourceText = draftText
         overlayState?.draftStablePrefixLength = min(draft?.stablePrefixLength ?? 0, draftText.count)
         overlayState?.draftPromotionID = draftPromotionID
+        overlayState?.sourceName = source.name
         overlayState?.clearDraftTranslationIfMismatched(
             sourceText: draftText,
             promotionID: draftPromotionID
@@ -1159,14 +1389,24 @@ final class AppModel: ObservableObject {
         lastDraftStablePrefix = stablePrefix
 
         guard draftText != lastDraftTranslationSource
-                || draftPromotionID != lastDraftTranslationPromotionID else {
+                || draftPromotionID != lastDraftTranslationPromotionID
+                || source.id != lastDraftSourceID else {
             return
         }
+        lastDraftSourceID = source.id
         lastDraftTranslationSource = draftText
         lastDraftTranslationPromotionID = draftPromotionID
 
-        if shouldReserveDraftTranslationSlot {
-            scheduleDraftTranslation(for: draftText, promotionID: draftPromotionID)
+        if shouldReserveDraftTranslationSlot(
+            sourceLanguageID: sourceLanguageID,
+            targetLanguageID: targetLanguageID
+        ) {
+            scheduleDraftTranslation(
+                for: draftText,
+                promotionID: draftPromotionID,
+                sourceLanguageID: sourceLanguageID,
+                targetLanguageID: targetLanguageID
+            )
         } else {
             draftTranslationTask?.cancel()
             draftTranslationTask = nil
@@ -1215,6 +1455,9 @@ final class AppModel: ObservableObject {
         overlayState?.draftStablePrefixLength = 0
         overlayState?.draftPromotionID = nil
         overlayState?.clearDraftTranslation()
+        activeDraftSourceLanguageID = nil
+        activeDraftTargetLanguageID = nil
+        lastDraftSourceID = nil
         lastDraftStablePrefix = ""
         lastDraftTranslationSource = ""
         lastDraftTranslationPromotionID = nil
@@ -1223,7 +1466,12 @@ final class AppModel: ObservableObject {
         draftTranslationGeneration &+= 1
     }
 
-    private func scheduleDraftTranslation(for text: String, promotionID: UUID?) {
+    private func scheduleDraftTranslation(
+        for text: String,
+        promotionID: UUID?,
+        sourceLanguageID: String,
+        targetLanguageID: String
+    ) {
         draftTranslationTask?.cancel()
         draftTranslationGeneration &+= 1
         let generation = draftTranslationGeneration
@@ -1233,13 +1481,13 @@ final class AppModel: ObservableObject {
             do { try await Task.sleep(nanoseconds: 60_000_000) } catch { return }
             guard !Task.isCancelled, liveTranscriptionSession != nil else { return }
 
-            let sourceID = currentSourceLanguageID
-            let targetID = outputLanguageID
             guard generation == draftTranslationGeneration else { return }
 
-            guard sourceID != targetID else {
+            guard sourceLanguageID != targetLanguageID else {
                 guard overlayState?.draftSourceText == text,
-                      overlayState?.draftPromotionID == promotionID else {
+                      overlayState?.draftPromotionID == promotionID,
+                      activeDraftSourceLanguageID == sourceLanguageID,
+                      activeDraftTargetLanguageID == targetLanguageID else {
                     return
                 }
                 overlayState?.setDraftTranslation(
@@ -1252,7 +1500,11 @@ final class AppModel: ObservableObject {
 
             let translated = await withTaskGroup(of: String?.self, returning: String?.self) { group in
                 group.addTask {
-                    try? await self.translationCoordinator.translate(text, from: sourceID, to: targetID)
+                    try? await self.translationCoordinator.translate(
+                        text,
+                        from: sourceLanguageID,
+                        to: targetLanguageID
+                    )
                 }
                 // Draft translation should feel live; drop stale work quickly.
                 group.addTask {
@@ -1268,7 +1520,9 @@ final class AppModel: ObservableObject {
                   liveTranscriptionSession != nil,
                   generation == draftTranslationGeneration,
                   overlayState?.draftSourceText == text,
-                  overlayState?.draftPromotionID == promotionID else { return }
+                  overlayState?.draftPromotionID == promotionID,
+                  activeDraftSourceLanguageID == sourceLanguageID,
+                  activeDraftTargetLanguageID == targetLanguageID else { return }
             if let translated {
                 let resolvedTranslation = glossaryService.apply(to: translated, glossary: glossary)
                 if shouldTreatAsMissingTranslation(resolvedTranslation, sourceText: text) == false {
@@ -1370,10 +1624,17 @@ final class AppModel: ObservableObject {
                 return
             }
 
-            if shouldReserveDraftTranslationSlot {
+            if let activeDraftSourceLanguageID,
+               let activeDraftTargetLanguageID,
+               shouldReserveDraftTranslationSlot(
+                   sourceLanguageID: activeDraftSourceLanguageID,
+                   targetLanguageID: activeDraftTargetLanguageID
+               ) {
                 scheduleDraftTranslation(
                     for: draftText,
-                    promotionID: overlayState?.draftPromotionID
+                    promotionID: overlayState?.draftPromotionID,
+                    sourceLanguageID: activeDraftSourceLanguageID,
+                    targetLanguageID: activeDraftTargetLanguageID
                 )
             } else {
                 draftTranslationTask?.cancel()
@@ -1396,13 +1657,15 @@ final class AppModel: ObservableObject {
     }
 
     private func makePreviewState(for source: InputSource) -> OverlayPreviewState {
-        let sourceText = sampleText(for: inputLanguageID)
+        let sourceLanguageID = languageID(for: source)
+        let targetLanguageID = outputLanguageIDForSource(source)
+        let sourceText = sampleText(for: sourceLanguageID)
         let translatedText: String
 
-        if inputLanguageID == outputLanguageID {
+        if sourceLanguageID == targetLanguageID {
             translatedText = sourceText
         } else {
-            translatedText = sampleText(for: outputLanguageID)
+            translatedText = sampleText(for: targetLanguageID)
         }
 
         return OverlayPreviewState(
@@ -1414,7 +1677,12 @@ final class AppModel: ObservableObject {
 
     // MARK: - Caption queue
 
-    private func enqueueRecognizedSentence(_ sentence: RecognizedSentence, sourceName: String) {
+    private func enqueueRecognizedSentence(
+        _ sentence: RecognizedSentence,
+        source: InputSource,
+        sourceLanguageID: String,
+        targetLanguageID: String
+    ) {
         let sourceText = sanitizedDisplayText(sentence.text)
         guard sourceText.isEmpty == false else {
             return
@@ -1437,7 +1705,9 @@ final class AppModel: ObservableObject {
                 id: UUID(),
                 promotionID: promotionID,
                 sourceText: sourceText,
-                sourceName: sourceName,
+                sourceName: source.name,
+                sourceLanguageID: sourceLanguageID,
+                targetLanguageID: targetLanguageID,
                 promotedDraftTranslation: promotedDraftTranslation
             )
 
@@ -1455,7 +1725,9 @@ final class AppModel: ObservableObject {
                 id: UUID(),
                 promotionID: UUID(),
                 sourceText: sourceText,
-                sourceName: sourceName,
+                sourceName: source.name,
+                sourceLanguageID: sourceLanguageID,
+                targetLanguageID: targetLanguageID,
                 promotedDraftTranslation: nil
             )
 
@@ -1484,7 +1756,7 @@ final class AppModel: ObservableObject {
             sessionState = .running
         }
 
-        setStatus(.running(sourceName: sourceName))
+        setStatus(.running(sourceName: selectedSourceDisplayName))
     }
 
     private func refreshCaptionTranslations() {
@@ -1511,7 +1783,7 @@ final class AppModel: ObservableObject {
                     return
                 }
 
-                let translationExpected = currentSourceLanguageID != outputLanguageID
+                let translationExpected = displayedCaption.sourceLanguageID != displayedCaption.targetLanguageID
                 let resolvedTranslation = translationExpected
                     ? (translatedText ?? "")
                     : displayedCaption.sourceText
@@ -1530,16 +1802,26 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private var currentSourceLanguageID: String {
-        activeInputLanguageID ?? inputLanguageID
+    private func shouldReserveDraftTranslationSlot(
+        sourceLanguageID: String,
+        targetLanguageID: String
+    ) -> Bool {
+        showsTranslatedSubtitle && sourceLanguageID != targetLanguageID
     }
 
     var shouldReserveDraftTranslationSlot: Bool {
-        showsTranslatedSubtitle && currentSourceLanguageID != outputLanguageID
+        guard let activeDraftSourceLanguageID,
+              let activeDraftTargetLanguageID else {
+            return false
+        }
+        return shouldReserveDraftTranslationSlot(
+            sourceLanguageID: activeDraftSourceLanguageID,
+            targetLanguageID: activeDraftTargetLanguageID
+        )
     }
 
     var transcriptSourceLanguageID: String {
-        transcriptInputLanguageID ?? currentSourceLanguageID
+        transcriptInputLanguageID ?? inputLanguageID
     }
 
     var transcriptTargetLanguageID: String {
@@ -1583,6 +1865,9 @@ final class AppModel: ObservableObject {
         draftTranslationTask = nil
         committedCaptionArchiveTask?.cancel()
         committedCaptionArchiveTask = nil
+        activeDraftSourceLanguageID = nil
+        activeDraftTargetLanguageID = nil
+        lastDraftSourceID = nil
         lastDraftStablePrefix = ""
         lastDraftTranslationSource = ""
         lastDraftTranslationPromotionID = nil
@@ -1597,7 +1882,6 @@ final class AppModel: ObservableObject {
         recentArchivedCaption = nil
         finalizedDraftPromotionIDs.removeAll()
         displayedCaption = nil
-        activeInputLanguageID = nil
         overlayHistoryScrollOffset = 0
         displayedCaptionLastVisualUpdateAt = Date.distantPast
         displayedCaptionLastVisualUpdateWasLateTranslation = false
@@ -1654,7 +1938,7 @@ final class AppModel: ObservableObject {
             let earlyTranslation = readyCaptionTranslations[caption.id]
             let initialTranslation = earlyTranslation
                 ?? (caption.promotedDraftTranslation?.isEmpty == false ? caption.promotedDraftTranslation : nil)
-            let translationExpected = currentSourceLanguageID != outputLanguageID
+            let translationExpected = caption.sourceLanguageID != caption.targetLanguageID
 
             cancelCommittedCaptionArchive()
             displayedCaption = caption
@@ -1716,8 +2000,8 @@ final class AppModel: ObservableObject {
             // This is safe because no translation is in-flight at this point.
             if translationCoordinator.consecutiveTimeouts >= 2 {
                 translationCoordinator.recoverSession(
-                    source: currentSourceLanguageID,
-                    target: outputLanguageID
+                    source: caption.sourceLanguageID,
+                    target: caption.targetLanguageID
                 )
             }
 
@@ -2144,10 +2428,7 @@ final class AppModel: ObservableObject {
     }
 
     private func translatedText(for caption: QueuedCaption) async -> String? {
-        let sourceLanguageID = currentSourceLanguageID
-        let targetLanguageID = outputLanguageID
-
-        guard sourceLanguageID != targetLanguageID else {
+        guard caption.sourceLanguageID != caption.targetLanguageID else {
             return caption.sourceText
         }
 
@@ -2162,8 +2443,8 @@ final class AppModel: ObservableObject {
                 do {
                     return try await self.translationCoordinator.translate(
                         caption.sourceText,
-                        from: sourceLanguageID,
-                        to: targetLanguageID
+                        from: caption.sourceLanguageID,
+                        to: caption.targetLanguageID
                     )
                 } catch {
                     return nil
@@ -2587,11 +2868,18 @@ private struct RecentArchivedCaption {
     let promotionID: UUID?
 }
 
+private struct LanguagePairRequirement: Hashable {
+    let sourceLanguageID: String
+    let targetLanguageID: String
+}
+
 private struct QueuedCaption: Identifiable, Equatable {
     let id: UUID
     let promotionID: UUID
     let sourceText: String
     let sourceName: String
+    let sourceLanguageID: String
+    let targetLanguageID: String
     let promotedDraftTranslation: String?
 }
 
@@ -2844,6 +3132,9 @@ private final class TranslationCoordinator: ObservableObject {
             if activeRunnerID == runnerID {
                 activeRunnerID = nil
                 signalRunnerAvailabilityWaiters()
+                if generation == runnerGeneration, let nextPair = pendingOperations.first?.pair {
+                    activate(pair: nextPair)
+                }
             }
         }
 
@@ -2940,32 +3231,23 @@ private final class TranslationCoordinator: ObservableObject {
     }
 
     private func activate(pair: LanguagePair) {
-        if currentPair != pair {
-            cancelPendingOperations(except: pair)
+        if activeRunnerID != nil, currentPair != pair {
+            return
+        }
+
+        if currentPair != pair || configuration == nil {
             currentPair = pair
             configuration = TranslationSession.Configuration(
                 source: Locale.Language(identifier: pair.source),
                 target: Locale.Language(identifier: pair.target)
             )
-        } else if configuration == nil {
-            configuration = TranslationSession.Configuration(
-                source: Locale.Language(identifier: pair.source),
-                target: Locale.Language(identifier: pair.target)
-            )
-        } else if activeRunnerID == nil {
+            return
+        }
+
+        if activeRunnerID == nil {
             // Each TranslationSession is view-anchored and should be refreshed
             // once the previous runner has drained and exited.
             configuration?.invalidate()
-        }
-    }
-
-    private func cancelPendingOperations(except pair: LanguagePair) {
-        let survivors = pendingOperations.filter { $0.pair == pair }
-        let cancelled = pendingOperations.filter { $0.pair != pair }
-        pendingOperations = survivors
-
-        for operation in cancelled {
-            cancel(operation)
         }
     }
 

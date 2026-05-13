@@ -17,11 +17,19 @@ enum AppTextKey: String {
     case showSubtitlePreview
     case inputSource
     case selectedSource
+    case allSources
+    case allInternalSources
+    case allDeviceSources
+    case multipleSourcesFormat
     case noSourcesDetected
     case noSources
     case choose
+    case done
     case refreshSources
     case languages
+    case defaultInputLanguage
+    case defaultSubtitleLanguage
+    case useDefaultFormat
     case inputLanguage
     case subtitleLanguage
     case inputShort
@@ -205,6 +213,35 @@ enum AppLocalization {
         )
     }
 
+    static func multipleSourcesText(count: Int, languageID: String) -> String {
+        let resolvedLanguageID = resolvedInterfaceLanguageID(storedIdentifier: languageID)
+
+        switch resolvedLanguageID {
+        case "en":
+            return count == 1 ? "1 Source" : "\(count) Sources"
+        case "zh-Hans":
+            return "\(count) 个来源"
+        case "es":
+            return count == 1 ? "1 fuente" : "\(count) fuentes"
+        case "de":
+            return count == 1 ? "1 Quelle" : "\(count) Quellen"
+        case "ja":
+            return "\(count) 個のソース"
+        case "fr":
+            return count == 1 ? "1 source" : "\(count) sources"
+        case "ko":
+            return "\(count)개 소스"
+        case "ar":
+            return arabicMultipleSourcesText(count: count)
+        case "pt":
+            return count == 1 ? "1 fonte" : "\(count) fontes"
+        case "ru":
+            return russianMultipleSourcesText(count: count)
+        default:
+            return formattedString(.multipleSourcesFormat, languageID: resolvedLanguageID, arguments: [count])
+        }
+    }
+
     static func localizedErrorDescription(_ error: Error, languageID: String) -> String {
         if let localizableError = error as? AppLocalizableError {
             return localizableError.localizedDescription(languageID: languageID)
@@ -216,6 +253,36 @@ enum AppLocalization {
     static func updateEmbeddedBundleLocalizationLanguageID(_ languageID: String) {
         EmbeddedBundleLocalizationBridge.installIfNeeded()
         EmbeddedBundleLocalizationBridge.setPreferredLanguageID(languageID)
+    }
+
+    private static func russianMultipleSourcesText(count: Int) -> String {
+        let mod10 = count % 10
+        let mod100 = count % 100
+
+        if mod10 == 1 && mod100 != 11 {
+            return "\(count) источник"
+        }
+
+        if (2...4).contains(mod10) && !(12...14).contains(mod100) {
+            return "\(count) источника"
+        }
+
+        return "\(count) источников"
+    }
+
+    private static func arabicMultipleSourcesText(count: Int) -> String {
+        switch count {
+        case 0:
+            return "لا توجد مصادر"
+        case 1:
+            return "مصدر واحد"
+        case 2:
+            return "مصدران"
+        case 3...10:
+            return "\(count) مصادر"
+        default:
+            return "\(count) مصدرًا"
+        }
     }
 
     private static let tables: [String: [String: String]] = [
@@ -231,11 +298,19 @@ enum AppLocalization {
             "showSubtitlePreview": "Show Subtitle Preview",
             "inputSource": "Input Source",
             "selectedSource": "Selected Source",
+            "allSources": "All Sources",
+            "allInternalSources": "All Internal Sources",
+            "allDeviceSources": "All Device Sources",
+            "multipleSourcesFormat": "%d Sources",
             "noSourcesDetected": "No sources detected",
             "noSources": "No sources",
             "choose": "Choose...",
+            "done": "Done",
             "refreshSources": "Refresh Sources",
             "languages": "Languages",
+            "defaultInputLanguage": "Default Input Language",
+            "defaultSubtitleLanguage": "Default Subtitle Language",
+            "useDefaultFormat": "Use Default (%@)",
             "inputLanguage": "Input Language",
             "subtitleLanguage": "Subtitle Language",
             "inputShort": "Input",
@@ -384,11 +459,19 @@ enum AppLocalization {
             "showSubtitlePreview": "显示字幕预览",
             "inputSource": "输入源",
             "selectedSource": "已选输入源",
+            "allSources": "全部来源",
+            "allInternalSources": "全部内部来源",
+            "allDeviceSources": "全部设备来源",
+            "multipleSourcesFormat": "%d 个来源",
             "noSourcesDetected": "未检测到输入源",
             "noSources": "没有可用输入源",
             "choose": "选择...",
+            "done": "完成",
             "refreshSources": "刷新输入源",
             "languages": "语言",
+            "defaultInputLanguage": "默认输入语言",
+            "defaultSubtitleLanguage": "默认字幕语言",
+            "useDefaultFormat": "使用默认值（%@）",
             "inputLanguage": "输入语言",
             "subtitleLanguage": "字幕语言",
             "inputShort": "输入",
@@ -537,11 +620,19 @@ enum AppLocalization {
             "showSubtitlePreview": "Mostrar vista previa de subtítulos",
             "inputSource": "Fuente de entrada",
             "selectedSource": "Fuente seleccionada",
+            "allSources": "Todas las fuentes",
+            "allInternalSources": "Todas las fuentes internas",
+            "allDeviceSources": "Todas las fuentes de dispositivo",
+            "multipleSourcesFormat": "%d fuentes",
             "noSourcesDetected": "No se detectaron fuentes",
             "noSources": "Sin fuentes",
             "choose": "Elegir...",
+            "done": "Listo",
             "refreshSources": "Actualizar fuentes",
             "languages": "Idiomas",
+            "defaultInputLanguage": "Idioma de entrada predeterminado",
+            "defaultSubtitleLanguage": "Idioma de subtítulos predeterminado",
+            "useDefaultFormat": "Usar predeterminado (%@)",
             "inputLanguage": "Idioma de entrada",
             "subtitleLanguage": "Idioma de subtítulos",
             "inputShort": "Entrada",
@@ -690,11 +781,19 @@ enum AppLocalization {
             "showSubtitlePreview": "Untertitelvorschau anzeigen",
             "inputSource": "Eingabequelle",
             "selectedSource": "Ausgewählte Quelle",
+            "allSources": "Alle Quellen",
+            "allInternalSources": "Alle internen Quellen",
+            "allDeviceSources": "Alle Gerätequellen",
+            "multipleSourcesFormat": "%d Quellen",
             "noSourcesDetected": "Keine Quellen erkannt",
             "noSources": "Keine Quellen",
             "choose": "Auswählen...",
+            "done": "Fertig",
             "refreshSources": "Quellen aktualisieren",
             "languages": "Sprachen",
+            "defaultInputLanguage": "Standard-Eingabesprache",
+            "defaultSubtitleLanguage": "Standard-Untertitelsprache",
+            "useDefaultFormat": "Standard verwenden (%@)",
             "inputLanguage": "Eingabesprache",
             "subtitleLanguage": "Untertitelsprache",
             "inputShort": "Eingabe",
@@ -843,11 +942,19 @@ enum AppLocalization {
             "showSubtitlePreview": "字幕プレビューを表示",
             "inputSource": "入力ソース",
             "selectedSource": "選択中のソース",
+            "allSources": "すべてのソース",
+            "allInternalSources": "すべての内部ソース",
+            "allDeviceSources": "すべてのデバイスソース",
+            "multipleSourcesFormat": "%d 個のソース",
             "noSourcesDetected": "ソースが見つかりません",
             "noSources": "ソースなし",
             "choose": "選択...",
+            "done": "完了",
             "refreshSources": "ソースを更新",
             "languages": "言語",
+            "defaultInputLanguage": "デフォルトの入力言語",
+            "defaultSubtitleLanguage": "デフォルトの字幕言語",
+            "useDefaultFormat": "デフォルトを使用（%@）",
             "inputLanguage": "入力言語",
             "subtitleLanguage": "字幕言語",
             "inputShort": "入力",
@@ -996,11 +1103,19 @@ enum AppLocalization {
             "showSubtitlePreview": "Afficher l'aperçu des sous-titres",
             "inputSource": "Source d'entrée",
             "selectedSource": "Source sélectionnée",
+            "allSources": "Toutes les sources",
+            "allInternalSources": "Toutes les sources internes",
+            "allDeviceSources": "Toutes les sources d'appareil",
+            "multipleSourcesFormat": "%d sources",
             "noSourcesDetected": "Aucune source détectée",
             "noSources": "Aucune source",
             "choose": "Choisir...",
+            "done": "Terminé",
             "refreshSources": "Actualiser les sources",
             "languages": "Langues",
+            "defaultInputLanguage": "Langue d'entrée par défaut",
+            "defaultSubtitleLanguage": "Langue des sous-titres par défaut",
+            "useDefaultFormat": "Utiliser la valeur par défaut (%@)",
             "inputLanguage": "Langue d'entrée",
             "subtitleLanguage": "Langue des sous-titres",
             "inputShort": "Entrée",
@@ -1149,11 +1264,19 @@ enum AppLocalization {
             "showSubtitlePreview": "자막 미리보기 표시",
             "inputSource": "입력 소스",
             "selectedSource": "선택한 소스",
+            "allSources": "모든 소스",
+            "allInternalSources": "모든 내부 소스",
+            "allDeviceSources": "모든 장치 소스",
+            "multipleSourcesFormat": "%d개 소스",
             "noSourcesDetected": "감지된 소스 없음",
             "noSources": "소스 없음",
             "choose": "선택...",
+            "done": "완료",
             "refreshSources": "소스 새로고침",
             "languages": "언어",
+            "defaultInputLanguage": "기본 입력 언어",
+            "defaultSubtitleLanguage": "기본 자막 언어",
+            "useDefaultFormat": "기본값 사용 (%@)",
             "inputLanguage": "입력 언어",
             "subtitleLanguage": "자막 언어",
             "inputShort": "입력",
@@ -1302,11 +1425,19 @@ enum AppLocalization {
             "showSubtitlePreview": "إظهار معاينة الترجمة",
             "inputSource": "مصدر الإدخال",
             "selectedSource": "المصدر المحدد",
+            "allSources": "كل المصادر",
+            "allInternalSources": "كل المصادر الداخلية",
+            "allDeviceSources": "كل مصادر الأجهزة",
+            "multipleSourcesFormat": "%d مصادر",
             "noSourcesDetected": "لم يتم اكتشاف أي مصادر",
             "noSources": "لا توجد مصادر",
             "choose": "اختر...",
+            "done": "تم",
             "refreshSources": "تحديث المصادر",
             "languages": "اللغات",
+            "defaultInputLanguage": "لغة الإدخال الافتراضية",
+            "defaultSubtitleLanguage": "لغة الترجمة الافتراضية",
+            "useDefaultFormat": "استخدام الافتراضي (%@)",
             "inputLanguage": "لغة الإدخال",
             "subtitleLanguage": "لغة الترجمة",
             "inputShort": "إدخال",
@@ -1455,11 +1586,19 @@ enum AppLocalization {
             "showSubtitlePreview": "Mostrar prévia das legendas",
             "inputSource": "Fonte de entrada",
             "selectedSource": "Fonte selecionada",
+            "allSources": "Todas as fontes",
+            "allInternalSources": "Todas as fontes internas",
+            "allDeviceSources": "Todas as fontes de dispositivo",
+            "multipleSourcesFormat": "%d fontes",
             "noSourcesDetected": "Nenhuma fonte detectada",
             "noSources": "Sem fontes",
             "choose": "Escolher...",
+            "done": "Concluído",
             "refreshSources": "Atualizar fontes",
             "languages": "Idiomas",
+            "defaultInputLanguage": "Idioma de entrada padrão",
+            "defaultSubtitleLanguage": "Idioma padrão das legendas",
+            "useDefaultFormat": "Usar padrão (%@)",
             "inputLanguage": "Idioma de entrada",
             "subtitleLanguage": "Idioma das legendas",
             "inputShort": "Entrada",
@@ -1608,11 +1747,19 @@ enum AppLocalization {
             "showSubtitlePreview": "Показать предпросмотр субтитров",
             "inputSource": "Источник ввода",
             "selectedSource": "Выбранный источник",
+            "allSources": "Все источники",
+            "allInternalSources": "Все внутренние источники",
+            "allDeviceSources": "Все источники устройств",
+            "multipleSourcesFormat": "%d источника",
             "noSourcesDetected": "Источники не обнаружены",
             "noSources": "Нет источников",
             "choose": "Выбрать...",
+            "done": "Готово",
             "refreshSources": "Обновить источники",
             "languages": "Языки",
+            "defaultInputLanguage": "Язык ввода по умолчанию",
+            "defaultSubtitleLanguage": "Язык субтитров по умолчанию",
+            "useDefaultFormat": "Использовать значение по умолчанию (%@)",
             "inputLanguage": "Язык ввода",
             "subtitleLanguage": "Язык субтитров",
             "inputShort": "Ввод",
