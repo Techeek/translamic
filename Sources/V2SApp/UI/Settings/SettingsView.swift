@@ -73,11 +73,11 @@ struct SettingsView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.regular)
-            Button { quitApp() } label: {
-                Image(systemName: "power")
+            Button(model.localized(.quit)) {
+                quitApp()
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
+            .buttonStyle(.bordered)
+            .controlSize(.regular)
             .help(model.localized(.quit))
         }
         .padding(.horizontal, 20)
@@ -114,15 +114,16 @@ struct SettingsView: View {
                 settingsCard {
                     sectionHeader(model.localized(.inputSource), icon: "mic.fill")
                     SettingsControlRow(label: model.localized(.selectedSource)) {
-                        SourceMenuPicker(
+                        SourceMultiSelectPicker(
                             sources: model.allSources,
                             interfaceLanguageID: model.resolvedInterfaceLanguageID,
                             emptyTitle: model.allSources.isEmpty
                                 ? model.localized(.noSourcesDetected)
                                 : model.localized(.choose),
-                            selection: model.selectedSourceOptionalBinding
+                            selection: model.selectedSourcesBinding
                         )
                     }
+                    selectedSourceLanguageRows
                     SecondaryRefreshButton(
                         title: model.localized(.refreshSources),
                         action: model.refreshSources
@@ -130,7 +131,7 @@ struct SettingsView: View {
                 }
                 settingsCard {
                     sectionHeader(model.localized(.languages), icon: "globe")
-                    SettingsControlRow(label: model.localized(.inputLanguage)) {
+                    SettingsControlRow(label: model.localized(.defaultInputLanguage)) {
                         CommonLanguageMenuPicker(
                             interfaceLanguageID: model.resolvedInterfaceLanguageID,
                             options: LanguageCatalog.speechInput,
@@ -139,7 +140,7 @@ struct SettingsView: View {
                         .disabled(model.isLanguagePairLocked)
                     }
                     Divider()
-                    SettingsControlRow(label: model.localized(.subtitleLanguage)) {
+                    SettingsControlRow(label: model.localized(.defaultSubtitleLanguage)) {
                         CommonLanguageMenuPicker(
                             interfaceLanguageID: model.resolvedInterfaceLanguageID,
                             selection: model.outputLanguageSelectionBinding
@@ -469,6 +470,57 @@ struct SettingsView: View {
 
     private var sourceFontBinding: Binding<Double> {
         overlayBinding(\.sourceFontSize)
+    }
+
+    @ViewBuilder private var selectedSourceLanguageRows: some View {
+        let sources = model.selectedSources
+        if sources.isEmpty == false {
+            ForEach(sources) { source in
+                Divider()
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(source.name)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.primary)
+                    SettingsControlRow(label: model.localized(.inputLanguage)) {
+                        DefaultableLanguageMenuPicker(
+                            interfaceLanguageID: model.resolvedInterfaceLanguageID,
+                            options: LanguageCatalog.speechInput,
+                            defaultTitle: model.localized(
+                                .useDefaultFormat,
+                                model.languageName(for: model.inputLanguageID)
+                            ),
+                            selection: sourceLanguageBinding(for: source)
+                        )
+                        .disabled(model.isLanguagePairLocked)
+                    }
+                    SettingsControlRow(label: model.localized(.subtitleLanguage)) {
+                        DefaultableLanguageMenuPicker(
+                            interfaceLanguageID: model.resolvedInterfaceLanguageID,
+                            defaultTitle: model.localized(
+                                .useDefaultFormat,
+                                model.languageName(for: model.outputLanguageID)
+                            ),
+                            selection: sourceOutputLanguageBinding(for: source)
+                        )
+                        .disabled(model.isLanguagePairLocked)
+                    }
+                }
+            }
+        }
+    }
+
+    private func sourceLanguageBinding(for source: InputSource) -> Binding<String?> {
+        Binding(
+            get: { model.languageOverrideID(for: source) },
+            set: { model.setLanguageOverrideID($0, for: source) }
+        )
+    }
+
+    private func sourceOutputLanguageBinding(for source: InputSource) -> Binding<String?> {
+        Binding(
+            get: { model.outputLanguageOverrideID(for: source) },
+            set: { model.setOutputLanguageOverrideID($0, for: source) }
+        )
     }
 
     private var colorsUseDefaultValues: Bool {

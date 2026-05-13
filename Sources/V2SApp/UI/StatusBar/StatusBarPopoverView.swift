@@ -85,11 +85,11 @@ struct StatusBarPopoverView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeader(model.localized(.inputSource), icon: "mic.fill")
             SettingsControlRow(label: model.localized(.sourceShort)) {
-                SourceMenuPicker(
+                SourceMultiSelectPicker(
                     sources: model.allSources,
                     interfaceLanguageID: model.resolvedInterfaceLanguageID,
                     emptyTitle: model.allSources.isEmpty ? model.localized(.noSources) : model.localized(.choose),
-                    selection: model.selectedSourceOptionalBinding
+                    selection: model.selectedSourcesBinding
                 )
             }
             SecondaryRefreshButton(
@@ -104,7 +104,7 @@ struct StatusBarPopoverView: View {
     private var languageSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeader(model.localized(.languages), icon: "globe")
-            SettingsControlRow(label: model.localized(.inputShort)) {
+            SettingsControlRow(label: model.localized(.defaultInputLanguage)) {
                 CommonLanguageMenuPicker(
                     interfaceLanguageID: model.resolvedInterfaceLanguageID,
                     options: LanguageCatalog.speechInput,
@@ -112,7 +112,7 @@ struct StatusBarPopoverView: View {
                 )
                 .disabled(model.isLanguagePairLocked)
             }
-            SettingsControlRow(label: model.localized(.subtitleShort)) {
+            SettingsControlRow(label: model.localized(.defaultSubtitleLanguage)) {
                 CommonLanguageMenuPicker(
                     interfaceLanguageID: model.resolvedInterfaceLanguageID,
                     selection: model.outputLanguageSelectionBinding
@@ -206,14 +206,15 @@ struct StatusBarPopoverView: View {
             .foregroundStyle(.secondary)
             .help(model.localized(.advancedSettings))
             Button { quitApp() } label: {
-                Text(model.localized(.quit))
-                    .font(.caption)
+                Image(systemName: "power")
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
+            .accessibilityLabel(model.localized(.quit))
+            .help(model.localized(.quit))
             Spacer()
-            if let s = model.selectedSource {
-                Text(s.name)
+            if model.selectedSources.isEmpty == false {
+                Text(model.selectedSourceDisplayName)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
