@@ -1525,7 +1525,12 @@ final class AppModel: ObservableObject {
                   activeDraftTargetLanguageID == targetLanguageID else { return }
             if let translated {
                 let resolvedTranslation = glossaryService.apply(to: translated, glossary: glossary)
-                if shouldTreatAsMissingTranslation(resolvedTranslation, sourceText: text) == false {
+                if shouldTreatAsMissingTranslation(
+                    resolvedTranslation,
+                    sourceText: text,
+                    sourceLanguageID: sourceLanguageID,
+                    targetLanguageID: targetLanguageID
+                ) == false {
                     overlayState?.setDraftTranslation(
                         resolvedTranslation,
                         sourceText: text,
@@ -1996,13 +2001,18 @@ final class AppModel: ObservableObject {
                 translationCoordinator.consecutiveTimeouts = 0
             }
 
-            // After 2 consecutive failed captions, recover the session between captions.
-            // This is safe because no translation is in-flight at this point.
+            // After 2 consecutive failed captions, recover the session and reissue
+            // affected translations so late backfill still has work to complete.
             if translationCoordinator.consecutiveTimeouts >= 2 {
                 translationCoordinator.recoverSession(
                     source: caption.sourceLanguageID,
                     target: caption.targetLanguageID
                 )
+
+                let captionsToRetry = [caption] + pendingCaptions.filter { $0.id != caption.id }
+                for captionToRetry in captionsToRetry {
+                    translateCaption(captionToRetry)
+                }
             }
 
             updateCommittedOverlay(
@@ -2026,9 +2036,11 @@ final class AppModel: ObservableObject {
                 translatedText: resolvedTranslation
             )
 
-            do {
-                try await Task.sleep(nanoseconds: UInt64(holdDuration * 1_000_000_000))
-            } catch {
+            let completedHold = await holdDisplayedCaption(
+                caption,
+                initialHoldDuration: holdDuration
+            )
+            if completedHold == false {
                 break
             }
             // defer runs here: removes caption from pendingCaptions + readyCaptionTranslations
@@ -2332,7 +2344,11 @@ final class AppModel: ObservableObject {
 
     private func updateReadyCaptionTranslation(_ translatedText: String?, for captionID: UUID) {
         if let translatedText {
-            readyCaptionTranslations[captionID] = translatedText
+            if shouldCacheReadyCaptionTranslation(for: captionID) {
+                readyCaptionTranslations[captionID] = translatedText
+            } else {
+                readyCaptionTranslations.removeValue(forKey: captionID)
+            }
         } else {
             readyCaptionTranslations.removeValue(forKey: captionID)
         }
@@ -2344,11 +2360,20 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// shouldCacheReadyCaptionTranslation
+    /// Returns true when a completed translation still belongs to the active caption flow.
+    private func shouldCacheReadyCaptionTranslation(for captionID: UUID) -> Bool {
+        displayedCaption?.id == captionID
+            || pendingCaptions.contains(where: { $0.id == captionID })
+            || captionTranslationWaiters[captionID]?.isEmpty == false
+    }
+
     /// Backfills a translation that finished after `processCaptionQueue` already moved on.
     /// Without this, captions whose translation arrived after the wait timeout would stay
     /// permanently untranslated in the live overlay, scrollback history, and transcript.
     private func applyLateCaptionTranslation(_ translatedText: String, for captionID: UUID) {
         var didApplyTranslation = false
+        var didApplyDisplayedTranslation = false
 
         if displayedCaption?.id == captionID,
            let state = overlayState,
@@ -2360,6 +2385,7 @@ final class AppModel: ObservableObject {
                 lateTranslation: true
             )
             didApplyTranslation = true
+            didApplyDisplayedTranslation = true
         }
 
         if let index = overlayState?.history.lastIndex(where: { $0.id == captionID }),
@@ -2377,6 +2403,54 @@ final class AppModel: ObservableObject {
         if didApplyTranslation {
             translationRevisions[captionID] = (text: translatedText, committedAt: Date(), count: 0)
         }
+
+        if didApplyDisplayedTranslation {
+            scheduleCommittedCaptionArchiveIfNeeded()
+        }
+    }
+
+    /// holdDisplayedCaption
+    /// Keeps the current caption visible, extending the hold if a late translation appears mid-display.
+    private func holdDisplayedCaption(_ caption: QueuedCaption, initialHoldDuration: Double) async -> Bool {
+        var targetDuration = initialHoldDuration
+        var observedLateTranslationAt = Date.distantPast
+
+        while Task.isCancelled == false {
+            guard liveTranscriptionSession != nil,
+                  displayedCaption?.id == caption.id else {
+                return false
+            }
+
+            let elapsed = max(0, Date().timeIntervalSince(displayedCaptionLastVisualUpdateAt))
+            let remainingDelay = max(0, targetDuration - elapsed)
+            if remainingDelay > 0 {
+                do {
+                    try await Task.sleep(nanoseconds: UInt64(remainingDelay * 1_000_000_000))
+                } catch {
+                    return false
+                }
+            }
+
+            guard displayedCaption?.id == caption.id else {
+                return false
+            }
+
+            if displayedCaptionLastVisualUpdateWasLateTranslation,
+               displayedCaptionLastVisualUpdateAt > observedLateTranslationAt,
+               let state = overlayState,
+               state.translatedText.isEmpty == false {
+                observedLateTranslationAt = displayedCaptionLastVisualUpdateAt
+                targetDuration = computeDisplayDuration(
+                    sourceText: state.sourceText,
+                    translatedText: state.translatedText
+                )
+                continue
+            }
+
+            return true
+        }
+
+        return false
     }
 
     private func shouldReplaceCommittedTranslation(_ currentText: String, for captionID: UUID) -> Bool {
@@ -2432,33 +2506,18 @@ final class AppModel: ObservableObject {
             return caption.sourceText
         }
 
-        // Dynamic timeout: base 3s + 1s per 30 chars, capped at 15s.
-        // Chinese/CJK text needs more time since each character carries more meaning.
-        let charCount = caption.sourceText.count
-        let dynamicTimeout = min(max(3.0, 3.0 + Double(charCount / 30) * 1.0), 15.0)
-        let timeoutNanoseconds = UInt64(dynamicTimeout * 1_000_000_000)
-
-        let raw = await withTaskGroup(of: String?.self, returning: String?.self) { group in
-            group.addTask {
-                do {
-                    return try await self.translationCoordinator.translate(
-                        caption.sourceText,
-                        from: caption.sourceLanguageID,
-                        to: caption.targetLanguageID
-                    )
-                } catch {
-                    return nil
-                }
-            }
-
-            group.addTask {
-                try? await Task.sleep(nanoseconds: timeoutNanoseconds)
-                return nil
-            }
-
-            let resolvedText = await group.next() ?? nil
-            group.cancelAll()
-            return resolvedText
+        // The committed caption display path has its own wait timeout. Keep this
+        // request alive so a slow translation can still backfill overlay history
+        // and transcript entries instead of being dropped permanently.
+        let raw: String?
+        do {
+            raw = try await translationCoordinator.translate(
+                caption.sourceText,
+                from: caption.sourceLanguageID,
+                to: caption.targetLanguageID
+            )
+        } catch {
+            raw = nil
         }
 
         guard let raw else {
@@ -2469,7 +2528,12 @@ final class AppModel: ObservableObject {
         let currentGlossary = glossary
         let translated = sanitizedDisplayText(glossaryService.apply(to: raw, glossary: currentGlossary))
         guard translated.isEmpty == false,
-              shouldTreatAsMissingTranslation(translated, sourceText: caption.sourceText) == false else {
+              shouldTreatAsMissingTranslation(
+                  translated,
+                  sourceText: caption.sourceText,
+                  sourceLanguageID: caption.sourceLanguageID,
+                  targetLanguageID: caption.targetLanguageID
+              ) == false else {
             return nil
         }
         return translated
@@ -2496,7 +2560,16 @@ final class AppModel: ObservableObject {
         return ""
     }
 
-    private func shouldTreatAsMissingTranslation(_ translatedText: String, sourceText: String) -> Bool {
+    private func shouldTreatAsMissingTranslation(
+        _ translatedText: String,
+        sourceText: String,
+        sourceLanguageID: String,
+        targetLanguageID: String
+    ) -> Bool {
+        guard sourceLanguageID != targetLanguageID else {
+            return false
+        }
+
         let comparableSource = comparableCaptionText(sourceText)
         let comparableTranslation = comparableCaptionText(translatedText)
         guard comparableSource.isEmpty == false,

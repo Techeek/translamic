@@ -298,7 +298,11 @@ struct OverlayView: View {
     }
 
     private func hasCommittedCaption(_ state: OverlayPreviewState) -> Bool {
-        (showsTranslatedSubtitle && state.translatedText.isEmpty == false)
+        usesSourceAsTranslationFallback(
+            translated: state.translatedText,
+            source: state.sourceText
+        )
+            || (showsTranslatedSubtitle && state.translatedText.isEmpty == false)
             || (showsOriginalSubtitle && state.sourceText.isEmpty == false)
     }
 
@@ -344,9 +348,13 @@ struct OverlayView: View {
     }
 
     private func estimatedHistoryEntryHeight(for entry: OverlayHistoryEntry) -> CGFloat {
-        estimatedCaptionPairHeight(
+        let usesFallback = usesSourceAsTranslationFallback(
+            translated: entry.translatedText,
+            source: entry.sourceText
+        )
+        return estimatedCaptionPairHeight(
             showsTranslated: showsTranslatedSubtitle,
-            showsSource: showsOriginalSubtitle && entry.sourceText.isEmpty == false
+            showsSource: showsOriginalSubtitle && entry.sourceText.isEmpty == false && usesFallback == false
         )
     }
 
@@ -474,23 +482,30 @@ struct OverlayView: View {
         source: String,
         sourceColor: Color
     ) -> some View {
-        VStack(spacing: Self.captionPairSpacing) {
+        let usesFallback = usesSourceAsTranslationFallback(
+            translated: translated,
+            source: source
+        )
+        let primaryTranslatedText = usesFallback ? source : translated
+        let showsSourceLine = showsOriginalSubtitle && source.isEmpty == false && usesFallback == false
+
+        return VStack(spacing: Self.captionPairSpacing) {
             if model.overlayStyle.translatedFirst {
                 if showsTranslatedSubtitle {
                     translatedText(
-                        translated,
+                        primaryTranslatedText,
                         color: translatedColor
                     )
                 }
 
-                if showsOriginalSubtitle, source.isEmpty == false {
+                if showsSourceLine {
                     sourceText(
                         source,
                         color: sourceColor
                     )
                 }
             } else {
-                if showsOriginalSubtitle, source.isEmpty == false {
+                if showsSourceLine {
                     sourceText(
                         source,
                         color: sourceColor
@@ -499,12 +514,18 @@ struct OverlayView: View {
 
                 if showsTranslatedSubtitle {
                     translatedText(
-                        translated,
+                        primaryTranslatedText,
                         color: translatedColor
                     )
                 }
             }
         }
+    }
+
+    /// usesSourceAsTranslationFallback
+    /// Returns true when a translated slot should show source text while translation is pending.
+    private func usesSourceAsTranslationFallback(translated: String, source: String) -> Bool {
+        showsTranslatedSubtitle && translated.isEmpty && source.isEmpty == false
     }
 
     private var showsOriginalSubtitle: Bool {
