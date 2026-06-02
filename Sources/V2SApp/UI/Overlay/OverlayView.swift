@@ -1,6 +1,10 @@
 import AppKit
 import SwiftUI
 
+enum OverlayPanelMetrics {
+    static let cornerRadius: CGFloat = 16
+}
+
 struct OverlayView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var interactionState: OverlayInteractionState
@@ -115,7 +119,7 @@ struct OverlayView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(backgroundView)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: OverlayPanelMetrics.cornerRadius, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                 )
             }
@@ -588,7 +592,7 @@ struct OverlayView: View {
     // MARK: - Background
 
     private var backgroundView: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: OverlayPanelMetrics.cornerRadius, style: .continuous)
             .fill(baseBackgroundColor.opacity(model.overlayStyle.backgroundOpacity))
     }
 
@@ -823,10 +827,10 @@ private struct OverlayTranslationHostModifier: ViewModifier {
 
 struct OverlayControlsChromeView: View {
     var body: some View {
-        RoundedRectangle(cornerRadius: 9, style: .continuous)
+        RoundedRectangle(cornerRadius: OverlayPanelMetrics.cornerRadius, style: .continuous)
             .fill(Color.black.opacity(0.28))
             .overlay(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                RoundedRectangle(cornerRadius: OverlayPanelMetrics.cornerRadius, style: .continuous)
                     .strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
             )
             .frame(width: OverlayControlsLayout.stripSize.width, height: OverlayControlsLayout.stripSize.height)
@@ -903,6 +907,25 @@ struct OverlayResizeButtonView: View {
                 .frame(width: 10, height: 10)
                 .allowsHitTesting(false)
         )
+    }
+}
+
+struct OverlayResetSizeButtonView: View {
+    @ObservedObject var model: AppModel
+    let onReset: () -> Void
+
+    var body: some View {
+        Button { onReset() } label: {
+            ZStack {
+                Circle().fill(Color.white.opacity(0.12))
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.65))
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(width: OverlayControlsLayout.controlSize, height: OverlayControlsLayout.controlSize)
+        .accessibilityLabel(model.localized(.resetOverlaySize))
     }
 }
 
@@ -1069,11 +1092,25 @@ enum OverlayControlsLayout {
     static let controlSize: CGFloat = 22
     static let controlSpacing: CGFloat = 6
 
+    static let controlCount = 4
+
     static var stripSize: CGSize {
-        CGSize(
+        let controlStackHeight = (controlSize * CGFloat(controlCount))
+            + (controlSpacing * CGFloat(controlCount - 1))
+        return CGSize(
             width: controlSize + (controlPaddingX * 2),
-            height: (controlSize * 3) + (controlSpacing * 2) + (controlPaddingY * 2)
+            height: controlStackHeight + (controlPaddingY * 2)
         )
+    }
+
+    /// Control panel chrome height (four buttons + vertical padding inside the strip).
+    static var controlPanelHeight: CGFloat {
+        stripSize.height
+    }
+
+    /// Overlay must be at least this tall so the chrome strip (offset by `outerPadding` from the bottom) fits inside.
+    static var minimumOverlayHeight: CGFloat {
+        controlPanelHeight + (outerPadding * 2)
     }
 }
 

@@ -14,12 +14,14 @@ final class OverlayWindowController {
     private let moveButtonPanel: OverlayPanel
     private let closeButtonPanel: OverlayPanel
     private let resizeButtonPanel: OverlayPanel
+    private let resetSizeButtonPanel: OverlayPanel
     private let subtitleHostingView: NSHostingView<OverlayView>
     private let controlsChromeHostingView: NSHostingView<OverlayControlsChromeView>
     private let scrollbarHostingView: NSHostingView<OverlayHistoryScrollbarView>
     private let moveButtonHostingView: NSHostingView<OverlayMoveButtonView>
     private let closeButtonHostingView: NSHostingView<OverlayCloseButtonView>
     private let resizeButtonHostingView: NSHostingView<OverlayResizeButtonView>
+    private let resetSizeButtonHostingView: NSHostingView<OverlayResetSizeButtonView>
     private var cancellables = Set<AnyCancellable>()
     /// Top-left corner (minX, maxY) of the panel after a user drag. nil = use auto-position.
     private var userDefinedTopLeft: NSPoint?
@@ -101,6 +103,12 @@ final class OverlayWindowController {
             backing: .buffered,
             defer: false
         )
+        self.resetSizeButtonPanel = OverlayPanel(
+            contentRect: NSRect(origin: .zero, size: Self.controlButtonSize),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
         self.subtitleHostingView = NSHostingView(
             rootView: OverlayView(model: model, interactionState: interactionState)
         )
@@ -123,6 +131,9 @@ final class OverlayWindowController {
                 onResizeDragEnded: {}
             )
         )
+        self.resetSizeButtonHostingView = NSHostingView(
+            rootView: OverlayResetSizeButtonView(model: model, onReset: {})
+        )
 
         configurePanels()
         moveButtonHostingView.rootView = OverlayMoveButtonView(
@@ -138,6 +149,10 @@ final class OverlayWindowController {
             onResizeDragStart: { [weak self] in self?.beginResizeDrag() },
             onResizeDragChanged: { [weak self] translation in self?.updateResizeDrag(with: translation) },
             onResizeDragEnded: { [weak self] in self?.endResizeDrag() }
+        )
+        resetSizeButtonHostingView.rootView = OverlayResetSizeButtonView(
+            model: model,
+            onReset: { [weak self] in self?.resetOverlaySizeToDefault() }
         )
         scrollbarHostingView.rootView = OverlayHistoryScrollbarView(
             model: model,
@@ -173,6 +188,17 @@ final class OverlayWindowController {
 
         configurePanel(resizeButtonPanel, acceptsInput: true, level: controlLevel)
         resizeButtonPanel.contentView = resizeButtonHostingView
+
+        configurePanel(resetSizeButtonPanel, acceptsInput: true, level: controlLevel)
+        resetSizeButtonPanel.contentView = resetSizeButtonHostingView
+    }
+
+    private var leftControlPanels: [OverlayPanel] {
+        [controlsChromePanel, moveButtonPanel, closeButtonPanel, resizeButtonPanel, resetSizeButtonPanel]
+    }
+
+    private var leftControlButtonPanels: [OverlayPanel] {
+        [moveButtonPanel, resetSizeButtonPanel, closeButtonPanel, resizeButtonPanel]
     }
 
     private func configurePanel(_ panel: OverlayPanel, acceptsInput: Bool, level: NSWindow.Level) {
@@ -321,7 +347,7 @@ final class OverlayWindowController {
         )
 
         // Hide control panels during animation
-        let controlPanels = [controlsChromePanel, scrollbarPanel, moveButtonPanel, closeButtonPanel, resizeButtonPanel]
+        let controlPanels = leftControlPanels + [scrollbarPanel]
         controlPanels.forEach { $0.alphaValue = 0; $0.orderOut(nil) }
 
         // Set initial state for main panel
@@ -514,7 +540,7 @@ final class OverlayWindowController {
 
     private func fadeInControlPanels() {
         positionPanels()
-        let controlPanels = [controlsChromePanel, scrollbarPanel, moveButtonPanel, closeButtonPanel, resizeButtonPanel]
+        let controlPanels = leftControlPanels + [scrollbarPanel]
         controlPanels.forEach { $0.alphaValue = 0; $0.orderFront(nil) }
 
         NSAnimationContext.runAnimationGroup { context in
@@ -530,29 +556,17 @@ final class OverlayWindowController {
         panel.orderFront(nil)
         panel.orderFrontRegardless()
 
-        controlsChromePanel.orderFront(nil)
-        controlsChromePanel.orderFrontRegardless()
-
-        scrollbarPanel.orderFront(nil)
-        scrollbarPanel.orderFrontRegardless()
-
-        moveButtonPanel.orderFront(nil)
-        moveButtonPanel.orderFrontRegardless()
-
-        closeButtonPanel.orderFront(nil)
-        closeButtonPanel.orderFrontRegardless()
-
-        resizeButtonPanel.orderFront(nil)
-        resizeButtonPanel.orderFrontRegardless()
+        for controlPanel in leftControlPanels + [scrollbarPanel] {
+            controlPanel.orderFront(nil)
+            controlPanel.orderFrontRegardless()
+        }
     }
 
     private func orderOutAllPanels() {
         panel.orderOut(nil)
-        controlsChromePanel.orderOut(nil)
-        scrollbarPanel.orderOut(nil)
-        moveButtonPanel.orderOut(nil)
-        closeButtonPanel.orderOut(nil)
-        resizeButtonPanel.orderOut(nil)
+        for controlPanel in leftControlPanels + [scrollbarPanel] {
+            controlPanel.orderOut(nil)
+        }
     }
 
     private func positionPanels(animated: Bool = false) {
@@ -619,17 +633,17 @@ final class OverlayWindowController {
                 panel.animator().setFrame(overlayFrame, display: true)
                 controlsChromePanel.animator().setFrame(chromeFrame, display: true)
                 scrollbarPanel.animator().setFrame(scrollbarFrame, display: true)
-                moveButtonPanel.animator().setFrame(buttonFrames[0], display: true)
-                closeButtonPanel.animator().setFrame(buttonFrames[1], display: true)
-                resizeButtonPanel.animator().setFrame(buttonFrames[2], display: true)
+                for (buttonPanel, frame) in zip(leftControlButtonPanels, buttonFrames) {
+                    buttonPanel.animator().setFrame(frame, display: true)
+                }
             }
         } else {
             panel.setFrame(overlayFrame, display: true)
             controlsChromePanel.setFrame(chromeFrame, display: true)
             scrollbarPanel.setFrame(scrollbarFrame, display: true)
-            moveButtonPanel.setFrame(buttonFrames[0], display: true)
-            closeButtonPanel.setFrame(buttonFrames[1], display: true)
-            resizeButtonPanel.setFrame(buttonFrames[2], display: true)
+            for (buttonPanel, frame) in zip(leftControlButtonPanels, buttonFrames) {
+                buttonPanel.setFrame(frame, display: true)
+            }
         }
 
         if panelsShown {
@@ -638,11 +652,12 @@ final class OverlayWindowController {
     }
 
     private func resolvedPanelWidth(in visibleFrame: NSRect, style: OverlayStyle) -> Double {
+        let maximumWidth = min(style.maxWidth, visibleFrame.width)
         if let liveResizeWidth {
-            return min(max(liveResizeWidth, style.minWidth), style.maxWidth)
+            return min(max(liveResizeWidth, style.minWidth), maximumWidth)
         }
 
-        return min(max(visibleFrame.width * style.widthRatio, style.minWidth), style.maxWidth)
+        return min(max(visibleFrame.width * style.widthRatio, style.minWidth), maximumWidth)
     }
 
     private func clampedOverlayFrame(
@@ -693,7 +708,7 @@ final class OverlayWindowController {
             - OverlayControlsLayout.controlPaddingY
             - OverlayControlsLayout.controlSize
 
-        return (0..<3).map { index in
+        return (0..<OverlayControlsLayout.controlCount).map { index in
             NSRect(
                 x: buttonX,
                 y: topButtonY - CGFloat(index) * (OverlayControlsLayout.controlSize + OverlayControlsLayout.controlSpacing),
@@ -705,7 +720,7 @@ final class OverlayWindowController {
 
     private func resolvedPanelHeight(in visibleFrame: NSRect) -> Double {
         let minimumHeight = Self.minimumOverlayHeight
-        let maximumHeight = max(minimumHeight, visibleFrame.height * 0.5)
+        let maximumHeight = max(minimumHeight, visibleFrame.height)
         if let userDefinedHeight {
             return min(max(userDefinedHeight, minimumHeight), maximumHeight)
         }
@@ -776,7 +791,7 @@ final class OverlayWindowController {
         let minimumHeight = Self.minimumOverlayHeight
         let maximumHeight = max(
             minimumHeight,
-            min(resizeDragStartTopLeft.y - visibleFrame.minY, visibleFrame.height * 0.5)
+            resizeDragStartTopLeft.y - visibleFrame.minY
         )
         let newHeight = min(max(resizeDragStartHeight - translation.height, minimumHeight), maximumHeight)
 
@@ -786,7 +801,10 @@ final class OverlayWindowController {
             userDefinedHeight = newHeight
         } else {
             let rightEdgeX = resizeDragStartTopLeft.x + resizeDragStartWidth
-            let maximumWidth = min(style.maxWidth, rightEdgeX - visibleFrame.minX)
+            let maximumWidth = min(
+                min(style.maxWidth, visibleFrame.width),
+                rightEdgeX - visibleFrame.minX
+            )
             let newWidth = min(max(resizeDragStartWidth - translation.width, style.minWidth), maximumWidth)
             let newWidthRatio = newWidth / visibleFrame.width
             let newLeftX = rightEdgeX - newWidth
@@ -806,6 +824,22 @@ final class OverlayWindowController {
         resizeDragStartWidth = nil
         resizeDragStartHeight = nil
         resizeDragStartTopLeft = nil
+    }
+
+    private func resetOverlaySizeToDefault() {
+        endResizeDrag()
+        endControlDrag()
+        userDefinedTopLeft = nil
+        userDefinedHeight = nil
+        liveResizeWidth = nil
+
+        if model.overlayStyle.attachToSource == false {
+            model.updateOverlayStyle { style in
+                style.widthRatio = OverlayStyle.default.widthRatio
+            }
+        }
+
+        positionPanels(animated: true)
     }
 
     private func startMouseTrackingIfNeeded() {
@@ -859,12 +893,7 @@ final class OverlayWindowController {
             return
         }
 
-        let interactiveFrames = [
-            scrollbarPanel.frame,
-            moveButtonPanel.frame,
-            closeButtonPanel.frame,
-            resizeButtonPanel.frame
-        ]
+        let interactiveFrames = [scrollbarPanel.frame] + leftControlButtonPanels.map(\.frame)
         guard interactiveFrames.contains(where: { $0.contains(mouseLocation) }) == false else {
             interactionState.updatePassThroughBubble(nil)
             return
@@ -905,14 +934,7 @@ final class OverlayWindowController {
     }
 
     private func overlayTrackingBounds() -> NSRect {
-        let trackedFrames = [
-            panel.frame,
-            controlsChromePanel.frame,
-            scrollbarPanel.frame,
-            moveButtonPanel.frame,
-            closeButtonPanel.frame,
-            resizeButtonPanel.frame
-        ]
+        let trackedFrames = [panel.frame] + (leftControlPanels + [scrollbarPanel]).map(\.frame)
 
         guard var trackingBounds = trackedFrames.first else {
             return .zero
@@ -993,7 +1015,7 @@ final class OverlayWindowController {
             : .normal
 
         let allContentPanels: [OverlayPanel] = [panel, controlsChromePanel]
-        let allControlPanels: [OverlayPanel] = [scrollbarPanel, moveButtonPanel, closeButtonPanel, resizeButtonPanel]
+        let allControlPanels: [OverlayPanel] = [scrollbarPanel] + leftControlButtonPanels
 
         for p in allContentPanels {
             p.level = contentLevel
@@ -1024,14 +1046,7 @@ final class OverlayWindowController {
             return
         }
 
-        let orderedPanels: [NSWindow] = [
-            panel,
-            controlsChromePanel,
-            scrollbarPanel,
-            moveButtonPanel,
-            closeButtonPanel,
-            resizeButtonPanel
-        ]
+        let orderedPanels: [NSWindow] = [panel] + (leftControlPanels + [scrollbarPanel])
 
         for orderedPanel in orderedPanels {
             orderedPanel.order(.below, relativeTo: frontmostWindowNumber)
@@ -1216,7 +1231,7 @@ private final class OverlayPanel: NSPanel {
 }
 
 private extension OverlayWindowController {
-    static let minimumOverlayHeight: Double = 105
+    static let minimumOverlayHeight: Double = Double(OverlayControlsLayout.minimumOverlayHeight)
     static let attachToSourceRefreshDelayNanoseconds: UInt64 = 120_000_000
     static let mouseTrackingActivationPadding: CGFloat = 96
     static let passThroughBubbleDiameter: CGFloat = 118
