@@ -150,6 +150,7 @@ enum AppTextKey: String {
     case failedToStageWithReasonFormat
     case failedToReadCapturedAudioStreamFormat
     case scrollToLatestSubtitle
+    case resetOverlaySize
     case transcript
     case origin
     case translation
@@ -431,6 +432,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "Failed to %@: %@",
             "failedToReadCapturedAudioStreamFormat": "Failed to read the captured audio stream for %@.",
             "scrollToLatestSubtitle": "Scroll to latest subtitle",
+            "resetOverlaySize": "Reset overlay size",
             "transcript": "Transcript",
             "origin": "Origin",
             "translation": "Translation",
@@ -592,6 +594,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "无法%@：%@",
             "failedToReadCapturedAudioStreamFormat": "无法读取 %@ 的采集音频流。",
             "scrollToLatestSubtitle": "滚动到最新字幕",
+            "resetOverlaySize": "重置字幕窗大小",
             "transcript": "字幕记录",
             "origin": "原文",
             "translation": "译文",
@@ -753,6 +756,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "No se pudo %@: %@",
             "failedToReadCapturedAudioStreamFormat": "No se pudo leer el flujo de audio capturado de %@.",
             "scrollToLatestSubtitle": "Ir al subtítulo más reciente",
+            "resetOverlaySize": "Restablecer tamaño del overlay",
             "transcript": "Transcripción",
             "origin": "Original",
             "translation": "Traducción",
@@ -914,6 +918,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "%@ fehlgeschlagen: %@",
             "failedToReadCapturedAudioStreamFormat": "Der erfasste Audiostream von %@ konnte nicht gelesen werden.",
             "scrollToLatestSubtitle": "Zum neuesten Untertitel scrollen",
+            "resetOverlaySize": "Overlay-Größe zurücksetzen",
             "transcript": "Transkript",
             "origin": "Original",
             "translation": "Übersetzung",
@@ -1075,6 +1080,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "%@ に失敗しました: %@",
             "failedToReadCapturedAudioStreamFormat": "%@ のキャプチャ音声ストリームを読み取れませんでした。",
             "scrollToLatestSubtitle": "最新の字幕へ移動",
+            "resetOverlaySize": "オーバーレイのサイズをリセット",
             "transcript": "トランスクリプト",
             "origin": "原文",
             "translation": "翻訳",
@@ -1236,6 +1242,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "Impossible de %@ : %@",
             "failedToReadCapturedAudioStreamFormat": "Impossible de lire le flux audio capturé pour %@.",
             "scrollToLatestSubtitle": "Aller au sous-titre le plus récent",
+            "resetOverlaySize": "Réinitialiser la taille de l'overlay",
             "transcript": "Transcription",
             "origin": "Original",
             "translation": "Traduction",
@@ -1397,6 +1404,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "%@ 실패: %@",
             "failedToReadCapturedAudioStreamFormat": "%@ 의 캡처된 오디오 스트림을 읽을 수 없습니다.",
             "scrollToLatestSubtitle": "최신 자막으로 이동",
+            "resetOverlaySize": "오버레이 크기 재설정",
             "transcript": "기록",
             "origin": "원문",
             "translation": "번역",
@@ -1558,6 +1566,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "تعذر %@: %@",
             "failedToReadCapturedAudioStreamFormat": "تعذر قراءة دفق الصوت الملتقط لـ %@.",
             "scrollToLatestSubtitle": "الانتقال إلى أحدث ترجمة",
+            "resetOverlaySize": "إعادة تعيين حجم التراكب",
             "transcript": "النص المكتوب",
             "origin": "الأصل",
             "translation": "الترجمة",
@@ -1719,6 +1728,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "Falha ao %@: %@",
             "failedToReadCapturedAudioStreamFormat": "Não foi possível ler o fluxo de áudio capturado de %@.",
             "scrollToLatestSubtitle": "Ir para a legenda mais recente",
+            "resetOverlaySize": "Redefinir tamanho da sobreposição",
             "transcript": "Transcrição",
             "origin": "Original",
             "translation": "Tradução",
@@ -1880,6 +1890,7 @@ enum AppLocalization {
             "failedToStageWithReasonFormat": "Не удалось %@: %@",
             "failedToReadCapturedAudioStreamFormat": "Не удалось прочитать захваченный аудиопоток для %@.",
             "scrollToLatestSubtitle": "Прокрутить к последнему субтитру",
+            "resetOverlaySize": "Сбросить размер оверлея",
             "transcript": "Транскрипция",
             "origin": "Оригинал",
             "translation": "Перевод",
