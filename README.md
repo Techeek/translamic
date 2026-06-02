@@ -13,6 +13,8 @@
 </p>
 
 <p align="center">
+  <a href="https://franklioxygen.github.io/v2s/">Website</a>
+  ·
   <a href="README.zh-CN.md">中文文档</a>
 </p>
 

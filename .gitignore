@@ -25,8 +25,8 @@ dist/
 .claude/worktrees/
 
 
-# Docs (local development notes)
-docs/
+# Optional local notes under docs/ (GitHub Pages site lives in docs/)
+docs/notes/
 
 #Ignore cursor AI rules
 .cursor/rules/codacy.mdc
