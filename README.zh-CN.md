@@ -168,6 +168,10 @@ xcodebuild -project TranslaMic.xcodeproj -scheme TranslaMic -configuration Debug
 
 输出文件：`dist/translamic-0.1.6.pkg`。
 
+## 致谢
+
+特别感谢 [Frank Li（franklioxygen）](https://github.com/franklioxygen) 创建并开源 [v2s](https://github.com/franklioxygen/v2s)。TranslaMic 在 v2s 的实时语音识别、翻译、双语字幕和字幕记录等工作基础上继续开发，并增加了虚拟麦克风、目标语言语音输出及其他相关能力。没有原作者和社区贡献者提供的扎实基础，就不会有 TranslaMic。
+
 ## 许可证与来源
 
 TranslaMic 采用 [MIT License](LICENSE) 开源，并基于 [franklioxygen/v2s](https://github.com/franklioxygen/v2s) 开发。虚拟音频驱动改编自 Apple 的“Creating an Audio Server Driver Plug-in”示例，许可声明见 `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`。Qwen3-TTS、MLX-Audio 与 uv 的说明见 `Sources/TranslaMicApp/Resources/QwenTTS/THIRD_PARTY_NOTICES.md`。

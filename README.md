@@ -168,6 +168,10 @@ The package build automatically prepares the Qwen runtime and creates the single
 
 Output: `dist/translamic-0.1.6.pkg`.
 
+## Acknowledgements
+
+Special thanks to [Frank Li (franklioxygen)](https://github.com/franklioxygen) for creating and open-sourcing [v2s](https://github.com/franklioxygen/v2s). TranslaMic continues from v2s's foundation in real-time speech recognition, translation, bilingual captions, and transcripts, and adds the virtual microphone, target-language speech output, and related capabilities. TranslaMic would not exist without the original author's work and the contributions of the v2s community.
+
 ## License and attribution
 
 TranslaMic is released under the [MIT License](LICENSE) and is derived from [franklioxygen/v2s](https://github.com/franklioxygen/v2s). The virtual audio driver contains adapted code from Apple's “Creating an Audio Server Driver Plug-in” sample under the notice in `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`. See `Sources/TranslaMicApp/Resources/QwenTTS/THIRD_PARTY_NOTICES.md` for Qwen3-TTS, MLX-Audio, and uv notices.
