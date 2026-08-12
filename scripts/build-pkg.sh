@@ -27,6 +27,8 @@ esac
 
 mkdir -p "$DIST_DIR"
 
+"$ROOT_DIR/scripts/prepare-qwen-runtime.sh"
+
 xcodebuild \
   -project "$ROOT_DIR/TranslaMic.xcodeproj" \
   -scheme TranslaMic \

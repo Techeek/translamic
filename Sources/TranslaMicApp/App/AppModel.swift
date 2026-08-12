@@ -6,8 +6,8 @@ import SwiftUI
 import Translation
 
 private enum AppBuildInfo {
-    static let marketingVersion = "0.1.0"
-    static let buildNumber = "1"
+    static let marketingVersion = "0.1.6"
+    static let buildNumber = "7"
     static let repositoryURLString = "https://github.com/Techeek/translamic"
     static let repositoryURL = URL(string: repositoryURLString)
 }
@@ -116,6 +116,11 @@ final class AppModel: ObservableObject {
 
     @Published var outputLanguageID: String {
         didSet {
+            let previousDefaultText = AppModel.virtualMicrophoneTestSample(languageID: oldValue)
+            if virtualMicrophoneTestText == previousDefaultText
+                || virtualMicrophoneTestText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                virtualMicrophoneTestText = AppModel.virtualMicrophoneTestSample(languageID: outputLanguageID)
+            }
             persistSettings()
             syncOverlayPreviewIfNeeded()
             scheduleSelectedLanguageResourcePreparation(
@@ -169,6 +174,38 @@ final class AppModel: ObservableObject {
         }
     }
 
+    @Published var speechVoiceIdentifiers: [String: String] {
+        didSet {
+            guard oldValue != speechVoiceIdentifiers else { return }
+            persistSettings()
+            speechOutputCoordinator.setVoiceIdentifiers(speechVoiceIdentifiers)
+        }
+    }
+
+    @Published var speechSynthesisBackend: SpeechSynthesisBackend {
+        didSet {
+            guard oldValue != speechSynthesisBackend else { return }
+            persistSettings()
+            speechOutputCoordinator.setSynthesisBackend(
+                speechSynthesisBackend,
+                qwenVoiceIdentifier: qwenVoiceIdentifier
+            )
+        }
+    }
+
+    @Published var qwenVoiceIdentifier: String {
+        didSet {
+            guard oldValue != qwenVoiceIdentifier else { return }
+            persistSettings()
+            speechOutputCoordinator.setSynthesisBackend(
+                speechSynthesisBackend,
+                qwenVoiceIdentifier: qwenVoiceIdentifier
+            )
+        }
+    }
+
+    @Published var virtualMicrophoneTestText: String
+
     init(
         settingsStore: SettingsStore,
         sourceCatalogService: SourceCatalogService
@@ -199,6 +236,12 @@ final class AppModel: ObservableObject {
         self.subtitleDisplayMode = settings.subtitleDisplayMode
         self.glossary = settings.glossary
         self.virtualMicrophoneEnabled = settings.virtualMicrophoneEnabled
+        self.speechVoiceIdentifiers = settings.speechVoiceIdentifiers
+        self.speechSynthesisBackend = settings.speechSynthesisBackend
+        self.qwenVoiceIdentifier = settings.qwenVoiceIdentifier
+        self.virtualMicrophoneTestText = AppModel.virtualMicrophoneTestSample(
+            languageID: settings.outputLanguageID
+        )
         self.translationHostConfiguration = nil
         AppLocalization.updateEmbeddedBundleLocalizationLanguageID(self.interfaceLanguageID)
 
@@ -208,6 +251,11 @@ final class AppModel: ObservableObject {
         speechOutputCoordinator.onStateChange = { [weak self] state in
             self?.virtualMicrophoneState = state
         }
+        speechOutputCoordinator.setVoiceIdentifiers(speechVoiceIdentifiers)
+        speechOutputCoordinator.setSynthesisBackend(
+            speechSynthesisBackend,
+            qwenVoiceIdentifier: qwenVoiceIdentifier
+        )
 
         isBootstrapping = false
         speechOutputCoordinator.setEnabled(virtualMicrophoneEnabled)
@@ -725,7 +773,10 @@ final class AppModel: ObservableObject {
             subtitleMode: subtitleMode,
             subtitleDisplayMode: subtitleDisplayMode,
             glossary: glossary,
-            virtualMicrophoneEnabled: virtualMicrophoneEnabled
+            virtualMicrophoneEnabled: virtualMicrophoneEnabled,
+            speechVoiceIdentifiers: speechVoiceIdentifiers,
+            speechSynthesisBackend: speechSynthesisBackend,
+            qwenVoiceIdentifier: qwenVoiceIdentifier
         )
 
         settingsStore.save(settings)
@@ -1873,6 +1924,12 @@ final class AppModel: ObservableObject {
             return usesChinese ? "已关闭" : "Off"
         case .deviceUnavailable:
             return usesChinese ? "驱动未安装或尚未加载" : "Driver not installed or not loaded"
+        case .installingVoiceEngine:
+            return usesChinese ? "正在安装高品质语音引擎…" : "Installing high-quality voice engine…"
+        case .downloadingVoiceModel:
+            return usesChinese ? "正在下载 Qwen3-TTS 模型（约 2.5 GB）…" : "Downloading Qwen3-TTS model (about 2.5 GB)…"
+        case .loadingVoiceModel:
+            return usesChinese ? "正在加载 Qwen3-TTS 模型…" : "Loading Qwen3-TTS model…"
         case .ready:
             return usesChinese ? "已就绪" : "Ready"
         case .speaking:
@@ -1894,14 +1951,81 @@ final class AppModel: ObservableObject {
         resolvedInterfaceLanguageID.hasPrefix("zh") ? "测试虚拟麦克风" : "Test Virtual Microphone"
     }
 
+    var virtualMicrophoneTestTextTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "测试文本" : "Test Text"
+    }
+
+    var virtualMicrophoneOutputLanguageTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "翻译目标语言" : "Translation Target Language"
+    }
+
+    var virtualMicrophoneVoiceTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "输出音色" : "Output Voice"
+    }
+
+    var virtualMicrophoneEngineTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "语音引擎" : "Voice Engine"
+    }
+
+    var systemVoiceEngineTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "macOS 系统语音（低延迟）" : "macOS System Voice (Low Latency)"
+    }
+
+    var qwenVoiceEngineTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "Qwen3-TTS（高品质，本地）" : "Qwen3-TTS (High Quality, Local)"
+    }
+
+    var qwenVoiceOptions: [QwenVoiceOption] { QwenVoiceOption.all }
+
+    var virtualMicrophoneAutomaticVoiceTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "自动（系统默认）" : "Automatic (System Default)"
+    }
+
+    var availableVirtualMicrophoneVoices: [SpeechVoiceOption] {
+        speechOutputCoordinator.availableVoices(for: outputLanguageID)
+    }
+
+    var virtualMicrophoneVoiceSelectionBinding: Binding<String> {
+        Binding(
+            get: { [weak self] in
+                guard let self else { return "" }
+                let identifier = self.speechVoiceIdentifiers[self.outputLanguageID] ?? ""
+                return self.availableVirtualMicrophoneVoices.contains(where: { $0.id == identifier })
+                    ? identifier
+                    : ""
+            },
+            set: { [weak self] identifier in
+                guard let self else { return }
+                if identifier.isEmpty {
+                    self.speechVoiceIdentifiers.removeValue(forKey: self.outputLanguageID)
+                } else {
+                    self.speechVoiceIdentifiers[self.outputLanguageID] = identifier
+                }
+            }
+        )
+    }
+
     func refreshVirtualMicrophoneState() {
         guard virtualMicrophoneEnabled else { return }
         speechOutputCoordinator.refreshDeviceState()
     }
 
     func testVirtualMicrophone() {
-        guard virtualMicrophoneEnabled else { return }
-        speechOutputCoordinator.speakTest(languageID: outputLanguageID)
+        speechOutputCoordinator.speakPreview(
+            text: virtualMicrophoneTestText,
+            languageID: outputLanguageID
+        )
+    }
+
+    private static func virtualMicrophoneTestSample(languageID: String) -> String {
+        switch languageID {
+        case "zh-Hans":
+            return "你好，这是 TranslaMic 音色测试。"
+        case "zh-Hant", "yue":
+            return "你好，這是 TranslaMic 音色測試。"
+        default:
+            return "Hello, this is a TranslaMic voice test."
+        }
     }
 
     private func speakCaptionIfNeeded(id: UUID, text: String, languageID: String) {

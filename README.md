@@ -1,57 +1,173 @@
-# TranslaMic（译麦）
+<p align="center">
+  <img src="Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="TranslaMic icon">
+</p>
 
-TranslaMic is an open-source, Apple Silicon native meeting translator for macOS. It listens to your microphone or a selected app, transcribes and translates speech with Apple frameworks, then speaks the translated result through a virtual microphone that meeting apps can select as an input device.
+# TranslaMic
 
-> Current status: `0.1.0` MVP. The app and driver build successfully, but real meeting-app interoperability still needs installation and end-to-end testing.
+TranslaMic is an open-source, real-time voice translator for Apple Silicon Macs. It listens to a microphone or a selected application's audio, uses macOS capabilities to transcribe and translate the speech, then sends synthesized speech in the target language to a virtual microphone that Tencent Meeting, Zoom, Microsoft Teams, and other meeting apps can use as an input device.
+
+In addition to letting you speak one language while the meeting hears another, TranslaMic provides bilingual captions, a floating subtitle overlay, a glossary, and session transcripts.
+
+> Current version: `0.1.6` MVP. macOS 26+ and Apple Silicon only. Development builds are not yet signed with Developer ID or notarized by Apple, and meeting-app compatibility still requires per-app testing.
+
+[简体中文](README.zh-CN.md)
+
+## Features
+
+- Transcribe a microphone or selected application's audio in real time.
+- Translate text locally with Apple Translation.
+- Speak translated text into `TranslaMic Virtual Microphone`.
+- Choose between macOS system voices and the optional Qwen3-TTS engine.
+- Show source text, translated text, or bilingual floating captions.
+- Keep a transcript of the current session.
+- Use a glossary for names, product terms, and specialized vocabulary.
+- No TranslaMic account, analytics, or telemetry.
 
 ## How it works
 
-1. Apple Speech transcribes microphone or app audio on device.
-2. Apple Translation produces the target-language text on device.
-3. `AVSpeechSynthesizer` generates target-language speech.
-4. `TranslaMic Virtual Microphone`, a Core Audio HAL plug-in based on Apple's Audio Server Driver sample, exposes that audio to other apps.
+1. Apple Speech converts input audio to text on the Mac.
+2. Apple Translation produces text in the target language on the Mac.
+3. A macOS system voice or local Qwen3-TTS converts the translation into speech.
+4. A Core Audio virtual driver exposes that speech to other apps as microphone input.
 
-The existing bilingual subtitle overlay and transcript features inherited from [v2s](https://github.com/franklioxygen/v2s) remain available.
+The virtual microphone carries synthesized translated speech, not the original microphone signal. Captions normally appear first; translated speech follows after translation and synthesis latency.
 
 ## Requirements
 
 - macOS 26 or newer
-- Apple Silicon
+- Apple Silicon (M-series chip)
+- Ability to restart the Mac after driver installation
+- An initial internet download of about 2.5 GB when using Qwen3-TTS
 - Xcode 26 or newer when building from source
 
-## Install an unsigned development build
+Intel Macs and macOS 25 or earlier are not supported. A Mac App Store release is not planned.
 
-Download `translamic-x.y.z.pkg` from GitHub Releases and install it, then restart macOS so Core Audio loads the virtual device. The package installs:
+## Installation
+
+1. Download `translamic-x.y.z.pkg` from GitHub Releases.
+2. Confirm that the installer came from a trusted TranslaMic project release.
+3. Install the package, then restart the Mac so Core Audio loads the virtual microphone driver.
+4. Launch TranslaMic and grant the requested microphone, speech recognition, and Screen & System Audio Recording permissions.
+
+The package installs:
 
 - `/Applications/TranslaMic.app`
 - `/Library/Audio/Plug-Ins/HAL/TranslaMicVirtualAudio.driver`
 
-The installer package is intentionally unsigned and not notarized. Its payload uses local ad-hoc signatures, not an Apple Developer identity. macOS may still block it; use it only when you trust the release source. Developer ID signing and notarization are planned for a later release.
+### About unsigned development builds
 
-After restarting, enable **Virtual Microphone** in TranslaMic settings and select **TranslaMic Virtual Microphone** as the microphone in your meeting app.
+The current `.pkg` is not signed with Developer ID and is not notarized. Its app and driver use local ad-hoc signatures that do not require an Apple Developer account. macOS may block installation or the first launch.
+
+Install only builds from a source you trust. If macOS blocks the app, open System Settings → Privacy & Security, verify that the blocked application is TranslaMic, and then allow it to open. Developer ID signing and notarization will be considered before a formal release.
+
+## Quick start
+
+### 1. Select the audio source and languages
+
+In General settings:
+
+1. Select a microphone or the application you want to monitor.
+2. Choose the input language.
+3. Choose the subtitle and translation target language.
+4. If macOS reports missing speech or translation resources, download them before starting.
+
+### 2. Configure the translated virtual microphone
+
+1. Enable **Speak translations into the virtual microphone**.
+2. Confirm the translation target language.
+3. Select a voice engine and output voice.
+4. Enter a sentence in the test field and click **Test Virtual Microphone**. This test plays directly through the Mac's speakers so you can confirm the selected voice and pronunciation.
+5. If the driver is reported as unavailable, restart the Mac and then click **Refresh Sources**.
+
+### 3. Configure the meeting app
+
+Open the meeting app's audio settings and select **TranslaMic Virtual Microphone** as its microphone. Use the meeting app's microphone test to confirm that its input meter moves.
+
+Do not select `TranslaMic Virtual Microphone` as TranslaMic's own monitored input. Doing so can create a loop or provide no useful source audio.
+
+### 4. Start translating
+
+Click **Start** in TranslaMic. As you speak, the app transcribes, translates, displays captions, and sends synthesized speech to the virtual microphone. Click **Stop** when the meeting ends, and open **Transcript** if you need to copy the session text.
+
+## Voice engines
+
+| Engine | Characteristics | Best for | Considerations |
+| --- | --- | --- | --- |
+| macOS System Voice | Fast startup, low latency, no additional model | Live meetings and stability-first use | Naturalness depends on installed system voices |
+| Qwen3-TTS 0.6B | More natural speech and nine regular human voices, with local inference | Demos and non-real-time previews | About 2.5 GB on first download; the full sentence must currently be generated before playback, so latency is high and it is not recommended for live meetings |
+
+When Qwen3-TTS is selected, TranslaMic prepares an isolated runtime and downloads a pinned model revision in the background. The UI remains responsive. After loading, it performs one silent warmup and a separate long-lived process keeps the model in memory so it is not reloaded for every sentence. To preserve intelligibility and reliable output, the current version generates a complete sentence before playing it through the speaker or virtual microphone.
+
+Qwen runtime files are stored in:
+
+```text
+~/Library/Application Support/TranslaMic/Qwen3TTS
+```
+
+Generating a complete sentence with Qwen3-TTS currently takes several seconds on the local Mac, so overall latency is high. The project is evaluating other open-source models, quantized models, and speech-generation approaches. Until an option provides both acceptable quality and low latency, use the macOS engine for live meetings and treat Qwen3-TTS as an experimental natural-voice option.
+
+## Troubleshooting
+
+### The meeting app cannot see the virtual microphone
+
+- Restart the Mac after installing the `.pkg`.
+- Click **Refresh Sources** in TranslaMic.
+- Fully quit and reopen the meeting app, then check its microphone list again.
+- Confirm that `/Library/Audio/Plug-Ins/HAL/TranslaMicVirtualAudio.driver` exists.
+
+### The test button produces no sound
+
+- The test plays through the Mac's current speaker output, not through the meeting app.
+- Check system volume, the active output device, and that the test field is not empty.
+- Confirm that the selected voice matches the target language.
+- With Qwen3-TTS, wait until the status becomes **Ready** before testing again.
+
+### Qwen3-TTS remains on downloading or loading
+
+- The initial model download is about 2.5 GB; keep the network connected and allow enough disk space.
+- The first model load still takes time after the download finishes.
+- If the connection was interrupted, selecting Qwen3-TTS again or restarting the app will check and complete missing files.
+
+### Captions work, but the meeting app receives no sound
+
+- Confirm that **Speak translations into the virtual microphone** is enabled.
+- Confirm that the meeting app uses **TranslaMic Virtual Microphone**, not the built-in Mac microphone.
+- Watch the meeting app's microphone input meter; the virtual microphone does not automatically play through the Mac's speakers.
+- Confirm that a TranslaMic session is running and has produced non-empty translated text.
+
+## Important notes and known limitations
+
+- This is still an MVP. Zoom, Teams, Tencent Meeting, and other apps require separate real-device compatibility testing.
+- Real-time translation always introduces latency. Qwen3-TTS currently waits for complete-sentence generation and has substantially higher latency than the macOS engine. Other low-latency approaches are under consideration.
+- Speech recognition, translation, and synthesis can be wrong. Do not rely on them as the only source for medical, legal, safety, or other high-risk instructions.
+- Changing a voice affects future speech only; it does not modify audio that has already been sent.
+- Speakers and an external microphone can create acoustic echo. Headphones are recommended during meetings.
+- App updates normally reuse the downloaded Qwen model, but a future model change may require additional disk space.
+- Unsigned builds are intended for development and testing. Do not install one when you cannot verify its source.
+
+## Privacy and network access
+
+TranslaMic requires no account and contains no project-operated analytics, telemetry, or cloud backend. The default workflow uses macOS speech recognition, translation, and system voice capabilities. macOS may download required Apple language resources.
+
+Only selecting Qwen3-TTS triggers downloads of the MLX-Audio runtime dependencies and a pinned open model. Qwen inference then runs locally on the Mac. See `Sources/TranslaMicApp/Resources/QwenTTS/THIRD_PARTY_NOTICES.md` for third-party notices.
 
 ## Build from source
 
 ```bash
 git clone https://github.com/Techeek/translamic.git
 cd translamic
+./scripts/prepare-qwen-runtime.sh
 xcodebuild -project TranslaMic.xcodeproj -scheme TranslaMic -configuration Debug build
 ```
 
-Build the single unsigned installer artifact:
+The package build automatically prepares the Qwen runtime and creates the single unsigned installer artifact:
 
 ```bash
-./scripts/build-pkg.sh 0.1.0
+./scripts/build-pkg.sh 0.1.6
 ```
 
-Output: `dist/translamic-0.1.0.pkg`.
-
-## Privacy
-
-TranslaMic has no account, analytics, telemetry, or project-operated cloud backend. Speech recognition, translation, and speech synthesis use macOS capabilities. Some Apple language resources may need to be downloaded first.
+Output: `dist/translamic-0.1.6.pkg`.
 
 ## License and attribution
 
-TranslaMic is released under the [MIT License](LICENSE) and is derived from [franklioxygen/v2s](https://github.com/franklioxygen/v2s). The virtual audio driver contains adapted code from Apple's “Creating an Audio Server Driver Plug-in” sample under the notice in `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`.
-
-See [README.zh-CN.md](README.zh-CN.md) for Chinese documentation.
+TranslaMic is released under the [MIT License](LICENSE) and is derived from [franklioxygen/v2s](https://github.com/franklioxygen/v2s). The virtual audio driver contains adapted code from Apple's “Creating an Audio Server Driver Plug-in” sample under the notice in `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`. See `Sources/TranslaMicApp/Resources/QwenTTS/THIRD_PARTY_NOTICES.md` for Qwen3-TTS, MLX-Audio, and uv notices.

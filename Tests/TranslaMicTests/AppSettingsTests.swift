@@ -34,6 +34,9 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertTrue(settings.sourceLanguageOverrides.isEmpty)
         XCTAssertTrue(settings.sourceOutputLanguageOverrides.isEmpty)
         XCTAssertFalse(settings.virtualMicrophoneEnabled)
+        XCTAssertEqual(settings.speechSynthesisBackend, .system)
+        XCTAssertEqual(settings.qwenVoiceIdentifier, "vivian")
+        XCTAssertTrue(settings.speechVoiceIdentifiers.isEmpty)
     }
 
     func testMultiSourceSettingsRoundTripPreservesOverrides() throws {
@@ -49,7 +52,10 @@ final class AppSettingsTests: XCTestCase {
             subtitleMode: .balanced,
             subtitleDisplayMode: .both,
             glossary: ["CEO": "Chief Executive Officer"],
-            virtualMicrophoneEnabled: true
+            virtualMicrophoneEnabled: true,
+            speechVoiceIdentifiers: ["ja": "com.apple.voice.compact.ja-JP.Kyoko"],
+            speechSynthesisBackend: .qwen3,
+            qwenVoiceIdentifier: "ono_anna"
         )
 
         let data = try JSONEncoder().encode(settings)
@@ -67,5 +73,11 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(decoded.interfaceLanguageID, "en")
         XCTAssertEqual(decoded.glossary, ["CEO": "Chief Executive Officer"])
         XCTAssertTrue(decoded.virtualMicrophoneEnabled)
+        XCTAssertEqual(
+            decoded.speechVoiceIdentifiers,
+            ["ja": "com.apple.voice.compact.ja-JP.Kyoko"]
+        )
+        XCTAssertEqual(decoded.speechSynthesisBackend, .qwen3)
+        XCTAssertEqual(decoded.qwenVoiceIdentifier, "ono_anna")
     }
 }

@@ -97,6 +97,8 @@ struct SettingsView: View {
             return .red
         case .deviceUnavailable:
             return .orange
+        case .installingVoiceEngine, .downloadingVoiceModel, .loadingVoiceModel:
+            return .blue
         case .ready, .speaking:
             return .green
         case .disabled:
@@ -192,6 +194,54 @@ struct SettingsView: View {
                             .labelsHidden()
                     }
                     Divider()
+                    settingsRow(model.virtualMicrophoneOutputLanguageTitle) {
+                        Text(model.languageName(for: model.outputLanguageID))
+                            .foregroundStyle(.secondary)
+                    }
+                    Divider()
+                    settingsRow(model.virtualMicrophoneEngineTitle) {
+                        Picker("", selection: $model.speechSynthesisBackend) {
+                            Text(model.systemVoiceEngineTitle).tag(SpeechSynthesisBackend.system)
+                            Text(model.qwenVoiceEngineTitle).tag(SpeechSynthesisBackend.qwen3)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: 280)
+                    }
+                    Divider()
+                    settingsRow(model.virtualMicrophoneVoiceTitle) {
+                        if model.speechSynthesisBackend == .qwen3 {
+                            Picker("", selection: $model.qwenVoiceIdentifier) {
+                                ForEach(model.qwenVoiceOptions) { voice in
+                                    Text(voice.name).tag(voice.id)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(maxWidth: 280)
+                        } else {
+                            Picker("", selection: model.virtualMicrophoneVoiceSelectionBinding) {
+                                Text(model.virtualMicrophoneAutomaticVoiceTitle).tag("")
+                                ForEach(model.availableVirtualMicrophoneVoices) { voice in
+                                    Text(voice.name).tag(voice.id)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(maxWidth: 240)
+                        }
+                    }
+                    Divider()
+                    settingsRow(model.virtualMicrophoneTestTextTitle) {
+                        TextField("", text: $model.virtualMicrophoneTestText)
+                            .textFieldStyle(.roundedBorder)
+                            .lineLimit(1)
+                            .frame(minWidth: 240)
+                            .onSubmit {
+                                model.testVirtualMicrophone()
+                            }
+                    }
+                    Divider()
                     settingsRow(model.localized(.sessionState)) {
                         Text(model.virtualMicrophoneStatusText)
                             .foregroundStyle(virtualMicrophoneStatusColor)
@@ -211,7 +261,11 @@ struct SettingsView: View {
                             model.testVirtualMicrophone()
                         }
                         .buttonStyle(.borderedProminent)
-                        .disabled(model.virtualMicrophoneState != .ready)
+                        .disabled(
+                            model.virtualMicrophoneTestText
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                                .isEmpty
+                        )
                     }
                 }
                 settingsCard {
