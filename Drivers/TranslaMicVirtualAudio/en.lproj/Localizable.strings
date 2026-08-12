@@ -1,0 +1,13 @@
+/*
+See APPLE_SAMPLE_LICENSE.txt for the sample code licensing information.
+
+Localized strings displayed by the virtual audio device.
+*/
+
+DeviceName = "TranslaMic Virtual Microphone";
+InputStreamName = "Translated Microphone";
+OutputStreamName = "Translation Audio Feed";
+ManufacturerName = "TranslaMic Open Source Project";
+MasterElementName = "Master";
+LeftElementName = "Left";
+RightElementName = "Right";

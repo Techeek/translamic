@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="v2s — live bilingual subtitles for meetings, calls, streams, and videos on macOS. On-device speech and translation, menu bar workflow, zero cloud." />
+  <meta name="description" content="TranslaMic — live bilingual subtitles for meetings, calls, streams, and videos on macOS. On-device speech and translation, menu bar workflow, zero cloud." />
   <meta name="theme-color" content="#0a0c10" />
-  <title>v2s — Live bilingual subtitles for macOS</title>
+  <title>TranslaMic — Live bilingual subtitles for macOS</title>
   <link rel="icon" href="assets/app-icon.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="css/styles.css" />
   <script>
     try {
-      var l = localStorage.getItem("v2s-home-lang");
+      var l = localStorage.getItem("TranslaMic-home-lang");
       if (l === "zh") {
         document.documentElement.lang = "zh-CN";
         document.documentElement.dataset.lang = "zh";
@@ -28,7 +28,7 @@
     <div class="container header-inner">
       <a class="brand" href="#top" data-i18n-attr="aria-label:a11y.brand">
         <img src="assets/app-icon.png" alt="" width="32" height="32" class="brand-icon" />
-        <span class="brand-name">v2s</span>
+        <span class="brand-name">TranslaMic</span>
       </a>
       <nav class="nav" aria-label="Primary" data-i18n-attr="aria-label:a11y.nav">
         <a href="#features" data-i18n="nav.features">Features</a>
@@ -42,8 +42,8 @@
           <button type="button" class="lang-option is-active" data-lang="en" aria-pressed="true">EN</button>
           <button type="button" class="lang-option" data-lang="zh" aria-pressed="false">中文</button>
         </div>
-        <a class="btn btn-ghost btn-sm" href="https://github.com/franklioxygen/v2s" target="_blank" rel="noopener noreferrer" data-i18n="nav.github">GitHub</a>
-        <a class="btn btn-primary btn-sm" href="https://github.com/franklioxygen/v2s/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="nav.download">Download</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/Techeek/translamic" target="_blank" rel="noopener noreferrer" data-i18n="nav.github">GitHub</a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/Techeek/translamic/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="nav.download">Download</a>
         <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="mobile-nav" data-i18n-attr="aria-label:a11y.menuOpen">
           <span></span><span></span><span></span>
         </button>
@@ -59,7 +59,7 @@
       <a href="#languages" data-i18n="nav.languages">Languages</a>
       <a href="#privacy" data-i18n="nav.privacy">Privacy</a>
       <a href="#get-started" data-i18n="nav.getStarted">Get started</a>
-      <a href="https://github.com/franklioxygen/v2s/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="nav.download">Download</a>
+      <a href="https://github.com/Techeek/translamic/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="nav.download">Download</a>
     </div>
   </header>
 
@@ -72,17 +72,17 @@
             <span class="badge" data-i18n="hero.badgeOnDevice">100% on-device</span>
             <span class="badge badge-muted" data-i18n="hero.badgeMac">macOS 26+</span>
           </div>
-          <h1 data-i18n="hero.title">v2s: Live bilingual subtitles, never uploaded to the cloud.</h1>
+          <h1 data-i18n="hero.title">TranslaMic: Live bilingual subtitles, never uploaded to the cloud.</h1>
           <p class="hero-lead" data-i18n="hero.lead">
-            v2s turns microphone or app audio into a clean two-line subtitle bar for meetings, calls, streams, and videos.
+            TranslaMic turns microphone or app audio into a clean two-line subtitle bar for meetings, calls, streams, and videos.
             Hear the original language, read the translation, and stay on the window you already use.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-primary btn-lg" href="https://github.com/franklioxygen/v2s/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="hero.ctaDownload">
+            <a class="btn btn-primary btn-lg" href="https://github.com/Techeek/translamic/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="hero.ctaDownload">
               Download for macOS
             </a>
             <a class="btn btn-secondary btn-lg" href="#get-started" data-i18n="hero.ctaQuickStart">Quick start</a>
-            <a class="btn btn-ghost btn-lg" href="https://github.com/franklioxygen/v2s" target="_blank" rel="noopener noreferrer" data-i18n="hero.ctaSource">View source</a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/Techeek/translamic" target="_blank" rel="noopener noreferrer" data-i18n="hero.ctaSource">View source</a>
           </div>
         </div>
         <div class="hero-visual reveal reveal-delay">
@@ -101,7 +101,7 @@
               <div class="demo-content">
                 <img
                   src="https://github.com/user-attachments/assets/b65167ee-ae7e-4e37-8316-ebd200ae89a7"
-                  alt="v2s subtitle overlay on a video call"
+                  alt="TranslaMic subtitle overlay on a video call"
                   width="640"
                   height="360"
                   loading="eager"
@@ -200,7 +200,7 @@
           <figure class="screenshot-frame">
             <img
               src="https://github.com/user-attachments/assets/449039ee-c329-426e-a55b-ab6660c56ca7"
-              alt="v2s settings and menu bar interface"
+              alt="TranslaMic settings and menu bar interface"
               width="500"
               height="400"
               loading="lazy"
@@ -217,7 +217,7 @@
         <header class="section-header reveal">
           <p class="eyebrow" data-i18n="inputLangs.eyebrow">Input languages</p>
           <h2 data-i18n="inputLangs.title">Ten languages on the Apple speech path.</h2>
-          <p class="section-lead" data-i18n="inputLangs.lead">v2s lists only languages supported by SpeechAnalyzer/SpeechTranscriber. Regional variants are collapsed to Apple's default locale per language.</p>
+          <p class="section-lead" data-i18n="inputLangs.lead">TranslaMic lists only languages supported by SpeechAnalyzer/SpeechTranscriber. Regional variants are collapsed to Apple's default locale per language.</p>
         </header>
         <ul class="lang-chips reveal" role="list">
           <li data-i18n="inputLangs.chipCantonese">Cantonese</li>
@@ -233,7 +233,7 @@
         </ul>
         <p class="lang-note reveal">
           <span data-i18n="inputLangs.noteBefore">Subtitle (output) languages follow Apple Translation availability on your Mac. </span>
-          <a href="https://github.com/franklioxygen/v2s/blob/main/README.md" target="_blank" rel="noopener noreferrer" data-i18n="inputLangs.readmeLink" data-i18n-href="inputLangs.readmeHref">Read the full README →</a>
+          <a href="https://github.com/Techeek/translamic/blob/main/README.md" target="_blank" rel="noopener noreferrer" data-i18n="inputLangs.readmeLink" data-i18n-href="inputLangs.readmeHref">Read the full README →</a>
         </p>
       </div>
     </section>
@@ -248,7 +248,7 @@
           <h2 data-i18n="privacy.title">Your meeting stays on your machine.</h2>
           <ul class="check-list">
             <li data-i18n="privacy.li1">No account, cloud backend, analytics, or telemetry</li>
-            <li data-i18n="privacy.li2">Audio and subtitle text never leave your Mac through v2s</li>
+            <li data-i18n="privacy.li2">Audio and subtitle text never leave your Mac through TranslaMic</li>
             <li data-i18n="privacy.li3">Speech and translation use Apple's on-device frameworks</li>
             <li data-i18n="privacy.li4">Permissions requested only for speech, mic, or app audio capture</li>
           </ul>
@@ -269,8 +269,8 @@
               <h3 data-i18n="quickStart.s1Title">Download</h3>
               <p data-i18n="quickStart.s1Body" data-i18n-html></p>
               <div class="code-block">
-                <pre><code>open https://github.com/franklioxygen/v2s/releases/latest</code></pre>
-                <button type="button" class="copy-btn" data-copy="open https://github.com/franklioxygen/v2s/releases/latest" data-i18n="quickStart.copy" data-i18n-attr="aria-label:quickStart.copyCmd">Copy</button>
+                <pre><code>open https://github.com/Techeek/translamic/releases/latest</code></pre>
+                <button type="button" class="copy-btn" data-copy="open https://github.com/Techeek/translamic/releases/latest" data-i18n="quickStart.copy" data-i18n-attr="aria-label:quickStart.copyCmd">Copy</button>
               </div>
             </div>
           </div>
@@ -287,12 +287,12 @@
               <h3 data-i18n="quickStart.s3Title">Build from source</h3>
               <p data-i18n="quickStart.s3Body">Requires Xcode and macOS 26+ for speech and translation APIs.</p>
               <div class="code-block">
-                <pre><code>git clone https://github.com/franklioxygen/v2s.git
-cd v2s
-open v2s.xcodeproj</code></pre>
-                <button type="button" class="copy-btn" data-copy="git clone https://github.com/franklioxygen/v2s.git
-cd v2s
-open v2s.xcodeproj" data-i18n="quickStart.copy" data-i18n-attr="aria-label:quickStart.copyCmds">Copy</button>
+                <pre><code>git clone https://github.com/Techeek/translamic.git
+cd TranslaMic
+open TranslaMic.xcodeproj</code></pre>
+                <button type="button" class="copy-btn" data-copy="git clone https://github.com/Techeek/translamic.git
+cd TranslaMic
+open TranslaMic.xcodeproj" data-i18n="quickStart.copy" data-i18n-attr="aria-label:quickStart.copyCmds">Copy</button>
               </div>
             </div>
           </div>
@@ -312,11 +312,11 @@ open v2s.xcodeproj" data-i18n="quickStart.copy" data-i18n-attr="aria-label:quick
       <div class="container cta-inner reveal">
         <div>
           <h2 data-i18n="cta.title">Ready to follow every word?</h2>
-          <p data-i18n="cta.body">Free, open source, and built for macOS. Download v2s and keep your conversations accessible.</p>
+          <p data-i18n="cta.body">Free, open source, and built for macOS. Download TranslaMic and keep your conversations accessible.</p>
         </div>
         <div class="cta-actions">
-          <a class="btn btn-primary btn-lg" href="https://github.com/franklioxygen/v2s/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="cta.download">Download latest</a>
-          <a class="btn btn-secondary btn-lg" href="https://github.com/franklioxygen/v2s" target="_blank" rel="noopener noreferrer" data-i18n="cta.star">Star on GitHub</a>
+          <a class="btn btn-primary btn-lg" href="https://github.com/Techeek/translamic/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="cta.download">Download latest</a>
+          <a class="btn btn-secondary btn-lg" href="https://github.com/Techeek/translamic" target="_blank" rel="noopener noreferrer" data-i18n="cta.star">Star on GitHub</a>
         </div>
       </div>
     </section>
@@ -326,10 +326,10 @@ open v2s.xcodeproj" data-i18n="quickStart.copy" data-i18n-attr="aria-label:quick
     <div class="container footer-inner">
       <div class="footer-brand">
         <img src="assets/app-icon.png" alt="" width="24" height="24" />
-        <span>v2s</span>
+        <span>TranslaMic</span>
       </div>
-      <p class="footer-meta"><span data-i18n="footer.license">MIT License · </span><a href="https://github.com/franklioxygen/v2s">franklioxygen/v2s</a></p>
-      <p class="footer-meta"><a href="https://github.com/franklioxygen/v2s/blob/main/README.zh-CN.md" data-i18n="footer.docLink" data-i18n-href="footer.docHref">中文文档</a></p>
+      <p class="footer-meta"><span data-i18n="footer.license">MIT License · </span><a href="https://github.com/Techeek/translamic">Techeek/translamic</a></p>
+      <p class="footer-meta"><a href="https://github.com/Techeek/translamic/blob/main/README.zh-CN.md" data-i18n="footer.docLink" data-i18n-href="footer.docHref">中文文档</a></p>
     </div>
   </footer>
 

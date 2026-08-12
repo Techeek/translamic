@@ -3,9 +3,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_PATH="$ROOT_DIR/v2s.xcodeproj"
+PROJECT_PATH="$ROOT_DIR/TranslaMic.xcodeproj"
 PROJECT_FILE="$PROJECT_PATH/project.pbxproj"
-VERSION_SOURCE_FILE="$ROOT_DIR/Sources/V2SApp/App/AppModel.swift"
+VERSION_SOURCE_FILE="$ROOT_DIR/Sources/TranslaMicApp/App/AppModel.swift"
 RELEASE_WORKFLOW_NAME="Release"
 RELEASE_WORKFLOW_PATH=".github/workflows/release.yml"
 WORKFLOW_ACTIVATION_POLL_ATTEMPTS=30
