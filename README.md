@@ -1,94 +1,57 @@
-# v2s
+# TranslaMic（译麦）
 
-<p align="center">
-  <img src="Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" alt="v2s app icon" width="256" height="256">
-</p>
+TranslaMic is an open-source, Apple Silicon native meeting translator for macOS. It listens to your microphone or a selected app, transcribes and translates speech with Apple frameworks, then speaks the translated result through a virtual microphone that meeting apps can select as an input device.
 
-<p align="center">
-  <strong>Live bilingual subtitles for meetings, calls, streams, and videos on macOS.</strong>
-</p>
+> Current status: `0.1.0` MVP. The app and driver build successfully, but real meeting-app interoperability still needs installation and end-to-end testing.
 
-<p align="center">
-  v2s turns microphone input or app audio into a clean two-line subtitle bar so you can follow speech in one language and read it in another without leaving the screen you are already using.
-</p>
+## How it works
 
-<p align="center">
-  <a href="https://franklioxygen.github.io/v2s/">Website</a>
-  ·
-  <a href="README.zh-CN.md">中文文档</a>
-</p>
+1. Apple Speech transcribes microphone or app audio on device.
+2. Apple Translation produces the target-language text on device.
+3. `AVSpeechSynthesizer` generates target-language speech.
+4. `TranslaMic Virtual Microphone`, a Core Audio HAL plug-in based on Apple's Audio Server Driver sample, exposes that audio to other apps.
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/b65167ee-ae7e-4e37-8316-ebd200ae89a7" alt="Mar-20-2026 11-08-59">
-</p>
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/449039ee-c329-426e-a55b-ab6660c56ca7" alt="Screenshot 2026-03-25 at 1 10 39 PM" width="500">
-</p>
-
-## Why v2s
-
-- Follow live conversations with translated subtitles pinned at the top of your screen.
-- Capture from your microphone or from a specific macOS app instead of your entire system mix.
-- Keep the original speech and the translated line visible together for fast context switching.
-- Stay in a lightweight menu bar workflow instead of juggling browser tabs or full-screen caption apps.
-
-## Features
-
-- Menu bar app built for always-available subtitle access.
-- Live subtitle overlay with translated text on the first line and source text on the second.
-- Audio source selection for microphones and running macOS apps.
-- On-device speech transcription powered by Apple SpeechAnalyzer.
-- On-device translation powered by Apple Translation.
-- Transcript summarization powered by Apple Intelligence for quick overview of conversations.
-- Overlay styling controls so the subtitle bar stays readable on top of real work.
-
-## Input Languages
-
-v2s only lists input languages supported by Apple's SpeechAnalyzer/SpeechTranscriber path. Regional variants are not exposed in the UI; v2s chooses a default supported region for each language.
-
-Supported input languages: Cantonese, Chinese (Simplified), English, French, German, Italian, Japanese, Korean, Portuguese, and Spanish.
-
-## Privacy
-
-- No account, cloud backend, analytics, or telemetry.
-- Audio and subtitle text never leave your Mac through v2s.
-- Translation uses Apple's on-device Translation framework. Some language packs may need to be downloaded first through System Settings.
-- Speech recognition uses Apple's on-device SpeechAnalyzer/SpeechTranscriber resources for the listed input languages.
-
-## Getting Started
-
-1. Download the latest `.app.zip` from [Releases](https://github.com/franklioxygen/v2s/releases).
-2. Unzip and move `v2s.app` to your Applications folder.
-3. Launch v2s — it appears as an icon in your menu bar.
-4. Select an input source (a running app or microphone).
-5. Choose your input and subtitle languages.
-6. Click **Start**.
-
-v2s will ask for permissions on first use:
-
-- **Speech Recognition** — to transcribe audio into text.
-- **Microphone** — when using a microphone as the input source.
-- **Audio Capture** — when capturing audio from another app.
+The existing bilingual subtitle overlay and transcript features inherited from [v2s](https://github.com/franklioxygen/v2s) remain available.
 
 ## Requirements
 
-- Speech transcription and translation require macOS 26 or newer
+- macOS 26 or newer
+- Apple Silicon
+- Xcode 26 or newer when building from source
 
-## Building from Source
+## Install an unsigned development build
+
+Download `translamic-x.y.z.pkg` from GitHub Releases and install it, then restart macOS so Core Audio loads the virtual device. The package installs:
+
+- `/Applications/TranslaMic.app`
+- `/Library/Audio/Plug-Ins/HAL/TranslaMicVirtualAudio.driver`
+
+The installer package is intentionally unsigned and not notarized. Its payload uses local ad-hoc signatures, not an Apple Developer identity. macOS may still block it; use it only when you trust the release source. Developer ID signing and notarization are planned for a later release.
+
+After restarting, enable **Virtual Microphone** in TranslaMic settings and select **TranslaMic Virtual Microphone** as the microphone in your meeting app.
+
+## Build from source
 
 ```bash
-git clone https://github.com/franklioxygen/v2s.git
-cd v2s
-open v2s.xcodeproj
+git clone https://github.com/Techeek/translamic.git
+cd translamic
+xcodebuild -project TranslaMic.xcodeproj -scheme TranslaMic -configuration Debug build
 ```
 
-Or from the terminal:
+Build the single unsigned installer artifact:
 
 ```bash
-xcodebuild -project v2s.xcodeproj -scheme v2s -configuration Debug build
+./scripts/build-pkg.sh 0.1.0
 ```
 
-## License
+Output: `dist/translamic-0.1.0.pkg`.
 
-MIT
+## Privacy
+
+TranslaMic has no account, analytics, telemetry, or project-operated cloud backend. Speech recognition, translation, and speech synthesis use macOS capabilities. Some Apple language resources may need to be downloaded first.
+
+## License and attribution
+
+TranslaMic is released under the [MIT License](LICENSE) and is derived from [franklioxygen/v2s](https://github.com/franklioxygen/v2s). The virtual audio driver contains adapted code from Apple's “Creating an Audio Server Driver Plug-in” sample under the notice in `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`.
+
+See [README.zh-CN.md](README.zh-CN.md) for Chinese documentation.

@@ -1,0 +1,511 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00000000000000000000071 /* DockVisibilityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000073 /* DockVisibilityController.swift */; };
+		A00000000000000000000072 /* SessionActionButtonLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000074 /* SessionActionButtonLabel.swift */; };
+		A00000000000000000000076 /* AppLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000077 /* AppLocalization.swift */; };
+		A00000000000000000000062 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000070 /* Assets.xcassets */; };
+		A00000000000000000000050 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000030 /* AppDelegate.swift */; };
+		A00000000000000000000051 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000031 /* AppModel.swift */; };
+		A00000000000000000000052 /* TranslaMicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000032 /* TranslaMicApp.swift */; };
+		A00000000000000000000053 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000033 /* AppSettings.swift */; };
+		A00000000000000000000054 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000034 /* InputSource.swift */; };
+		A00000000000000000000055 /* LanguageOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000035 /* LanguageOption.swift */; };
+		A00000000000000000000056 /* OverlayPreviewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000036 /* OverlayPreviewState.swift */; };
+		A00000000000000000000057 /* OverlayStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000037 /* OverlayStyle.swift */; };
+		A00000000000000000000083 /* SubtitleDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000084 /* SubtitleDisplayMode.swift */; };
+		A00000000000000000000058 /* SessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000038 /* SessionState.swift */; };
+		A00000000000000000000059 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000039 /* SettingsStore.swift */; };
+		A0000000000000000000005A /* SourceCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003A /* SourceCatalogService.swift */; };
+		A0000000000000000000005B /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003B /* OverlayView.swift */; };
+		A0000000000000000000005C /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003C /* OverlayWindowController.swift */; };
+		A0000000000000000000005D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003D /* SettingsView.swift */; };
+		A0000000000000000000005E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003E /* SettingsWindowController.swift */; };
+		A0000000000000000000005F /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003F /* StatusBarController.swift */; };
+		A00000000000000000000060 /* StatusBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000040 /* StatusBarPopoverView.swift */; };
+		A00000000000000000000061 /* LiveTranscriptionSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000041 /* LiveTranscriptionSession.swift */; };
+		A00000000000000000000063 /* ModeConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000042 /* ModeConfig.swift */; };
+		A00000000000000000000064 /* SegmentStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000043 /* SegmentStateMachine.swift */; };
+		A00000000000000000000065 /* SubtitleSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000044 /* SubtitleSegment.swift */; };
+		A00000000000000000000066 /* EntityCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000045 /* EntityCache.swift */; };
+		A00000000000000000000067 /* GlossaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000046 /* GlossaryService.swift */; };
+		A00000000000000000000068 /* SpeedMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000047 /* SpeedMonitor.swift */; };
+		A00000000000000000000079 /* TranscriptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000007A /* TranscriptView.swift */; };
+		A0000000000000000000007B /* SileroVADEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000007C /* SileroVADEngine.swift */; };
+		A0000000000000000000007D /* onnxruntime in Frameworks */ = {isa = PBXBuildFile; productRef = A0000000000000000000007F /* onnxruntime */; };
+		A00000000000000000000080 /* silero_vad.onnx in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000081 /* silero_vad.onnx */; };
+		A0000000000000000000008A /* SileroVADHysteresis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000008B /* SileroVADHysteresis.swift */; };
+		A0000000000000000000008C /* QuickSettingsControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000008D /* QuickSettingsControls.swift */; };
+		A0000000000000000000008E /* PopoverOutsideClickMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000008F /* PopoverOutsideClickMonitor.swift */; };
+		A00000000000000000000090 /* SentenceBoundaryHeuristics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000091 /* SentenceBoundaryHeuristics.swift */; };
+		A00000000000000000000092 /* SpeechOutputCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000093 /* SpeechOutputCoordinator.swift */; };
+		A00000000000000000000094 /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000095 /* LaunchAtLoginService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000070 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A00000000000000000000073 /* DockVisibilityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockVisibilityController.swift; sourceTree = "<group>"; };
+		A00000000000000000000074 /* SessionActionButtonLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionActionButtonLabel.swift; sourceTree = "<group>"; };
+		A00000000000000000000077 /* AppLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLocalization.swift; sourceTree = "<group>"; };
+		A0000000000000000000000A /* TranslaMic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TranslaMic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00000000000000000000030 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A00000000000000000000031 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		A00000000000000000000032 /* TranslaMicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslaMicApp.swift; sourceTree = "<group>"; };
+		A00000000000000000000033 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		A00000000000000000000034 /* InputSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSource.swift; sourceTree = "<group>"; };
+		A00000000000000000000035 /* LanguageOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageOption.swift; sourceTree = "<group>"; };
+		A00000000000000000000036 /* OverlayPreviewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPreviewState.swift; sourceTree = "<group>"; };
+		A00000000000000000000037 /* OverlayStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayStyle.swift; sourceTree = "<group>"; };
+		A00000000000000000000084 /* SubtitleDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleDisplayMode.swift; sourceTree = "<group>"; };
+		A00000000000000000000038 /* SessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionState.swift; sourceTree = "<group>"; };
+		A00000000000000000000039 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		A0000000000000000000003A /* SourceCatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceCatalogService.swift; sourceTree = "<group>"; };
+		A0000000000000000000003B /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
+		A0000000000000000000003C /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
+		A0000000000000000000003D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A0000000000000000000003E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		A0000000000000000000003F /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		A00000000000000000000040 /* StatusBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarPopoverView.swift; sourceTree = "<group>"; };
+		A00000000000000000000041 /* LiveTranscriptionSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTranscriptionSession.swift; sourceTree = "<group>"; };
+		A00000000000000000000042 /* ModeConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeConfig.swift; sourceTree = "<group>"; };
+		A00000000000000000000043 /* SegmentStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentStateMachine.swift; sourceTree = "<group>"; };
+		A00000000000000000000044 /* SubtitleSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleSegment.swift; sourceTree = "<group>"; };
+		A00000000000000000000045 /* EntityCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityCache.swift; sourceTree = "<group>"; };
+		A00000000000000000000046 /* GlossaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlossaryService.swift; sourceTree = "<group>"; };
+		A00000000000000000000047 /* SpeedMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedMonitor.swift; sourceTree = "<group>"; };
+		A0000000000000000000007A /* TranscriptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptView.swift; sourceTree = "<group>"; };
+		A0000000000000000000007C /* SileroVADEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SileroVADEngine.swift; sourceTree = "<group>"; };
+		A00000000000000000000081 /* silero_vad.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = silero_vad.onnx; sourceTree = "<group>"; };
+		A0000000000000000000008B /* SileroVADHysteresis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SileroVADHysteresis.swift; sourceTree = "<group>"; };
+		A0000000000000000000008D /* QuickSettingsControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSettingsControls.swift; sourceTree = "<group>"; };
+		A0000000000000000000008F /* PopoverOutsideClickMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverOutsideClickMonitor.swift; sourceTree = "<group>"; };
+		A00000000000000000000091 /* SentenceBoundaryHeuristics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentenceBoundaryHeuristics.swift; sourceTree = "<group>"; };
+		A00000000000000000000093 /* SpeechOutputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechOutputCoordinator.swift; sourceTree = "<group>"; };
+		A00000000000000000000095 /* LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginService.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0000000000000000000007D /* onnxruntime in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000000B /* Sources */,
+				A00000000000000000000014 /* Config */,
+				A00000000000000000000070 /* Assets.xcassets */,
+				A00000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000000A /* TranslaMic.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000B /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000000C /* TranslaMicApp */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000C /* TranslaMicApp */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000000D /* App */,
+				A00000000000000000000078 /* Localization */,
+				A0000000000000000000000E /* Models */,
+				A00000000000000000000082 /* Resources */,
+				A0000000000000000000000F /* Services */,
+				A00000000000000000000010 /* UI */,
+			);
+			path = TranslaMicApp;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000D /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000030 /* AppDelegate.swift */,
+				A00000000000000000000031 /* AppModel.swift */,
+				A00000000000000000000073 /* DockVisibilityController.swift */,
+				A00000000000000000000032 /* TranslaMicApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000078 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000077 /* AppLocalization.swift */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000082 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000081 /* silero_vad.onnx */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000E /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000033 /* AppSettings.swift */,
+				A00000000000000000000034 /* InputSource.swift */,
+				A00000000000000000000035 /* LanguageOption.swift */,
+				A00000000000000000000042 /* ModeConfig.swift */,
+				A00000000000000000000036 /* OverlayPreviewState.swift */,
+				A00000000000000000000037 /* OverlayStyle.swift */,
+				A00000000000000000000043 /* SegmentStateMachine.swift */,
+				A00000000000000000000038 /* SessionState.swift */,
+				A00000000000000000000084 /* SubtitleDisplayMode.swift */,
+				A00000000000000000000044 /* SubtitleSegment.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000045 /* EntityCache.swift */,
+				A00000000000000000000046 /* GlossaryService.swift */,
+				A00000000000000000000041 /* LiveTranscriptionSession.swift */,
+				A00000000000000000000095 /* LaunchAtLoginService.swift */,
+				A00000000000000000000091 /* SentenceBoundaryHeuristics.swift */,
+				A00000000000000000000039 /* SettingsStore.swift */,
+				A00000000000000000000093 /* SpeechOutputCoordinator.swift */,
+				A0000000000000000000007C /* SileroVADEngine.swift */,
+				A0000000000000000000008B /* SileroVADHysteresis.swift */,
+				A0000000000000000000003A /* SourceCatalogService.swift */,
+				A00000000000000000000047 /* SpeedMonitor.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000010 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000011 /* Overlay */,
+				A00000000000000000000075 /* Shared */,
+				A00000000000000000000012 /* Settings */,
+				A00000000000000000000013 /* StatusBar */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000075 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000008D /* QuickSettingsControls.swift */,
+				A00000000000000000000074 /* SessionActionButtonLabel.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000011 /* Overlay */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000003B /* OverlayView.swift */,
+				A0000000000000000000003C /* OverlayWindowController.swift */,
+			);
+			path = Overlay;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000012 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000003D /* SettingsView.swift */,
+				A0000000000000000000003E /* SettingsWindowController.swift */,
+				A0000000000000000000007A /* TranscriptView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000013 /* StatusBar */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000008F /* PopoverOutsideClickMonitor.swift */,
+				A0000000000000000000003F /* StatusBarController.swift */,
+				A00000000000000000000040 /* StatusBarPopoverView.swift */,
+			);
+			path = StatusBar;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000014 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000015 /* Info.plist */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000005 /* TranslaMic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000006 /* Build configuration list for PBXNativeTarget "TranslaMic" */;
+			buildPhases = (
+				A00000000000000000000007 /* Sources */,
+				A00000000000000000000008 /* Frameworks */,
+				A00000000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TranslaMic;
+			packageProductDependencies = (
+				A0000000000000000000007F /* onnxruntime */,
+			);
+			productName = TranslaMic;
+			productReference = A0000000000000000000000A /* TranslaMic.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					A00000000000000000000005 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+				};
+			};
+			buildConfigurationList = A00000000000000000000004 /* Build configuration list for PBXProject "TranslaMic" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A00000000000000000000002;
+			packageReferences = (
+				A0000000000000000000007E /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */,
+			);
+			productRefGroup = A00000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00000000000000000000005 /* TranslaMic */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A0000000000000000000007E /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/onnxruntime-swift-package-manager";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.24.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000062 /* Assets.xcassets in Resources */,
+				A00000000000000000000080 /* silero_vad.onnx in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000071 /* DockVisibilityController.swift in Sources */,
+				A00000000000000000000072 /* SessionActionButtonLabel.swift in Sources */,
+				A00000000000000000000076 /* AppLocalization.swift in Sources */,
+				A00000000000000000000050 /* AppDelegate.swift in Sources */,
+				A00000000000000000000051 /* AppModel.swift in Sources */,
+				A00000000000000000000052 /* TranslaMicApp.swift in Sources */,
+				A00000000000000000000053 /* AppSettings.swift in Sources */,
+				A00000000000000000000054 /* InputSource.swift in Sources */,
+				A00000000000000000000055 /* LanguageOption.swift in Sources */,
+				A00000000000000000000063 /* ModeConfig.swift in Sources */,
+				A00000000000000000000056 /* OverlayPreviewState.swift in Sources */,
+				A00000000000000000000057 /* OverlayStyle.swift in Sources */,
+				A00000000000000000000064 /* SegmentStateMachine.swift in Sources */,
+				A00000000000000000000058 /* SessionState.swift in Sources */,
+				A00000000000000000000083 /* SubtitleDisplayMode.swift in Sources */,
+				A00000000000000000000065 /* SubtitleSegment.swift in Sources */,
+				A00000000000000000000066 /* EntityCache.swift in Sources */,
+				A00000000000000000000067 /* GlossaryService.swift in Sources */,
+				A00000000000000000000090 /* SentenceBoundaryHeuristics.swift in Sources */,
+				A00000000000000000000059 /* SettingsStore.swift in Sources */,
+				A00000000000000000000092 /* SpeechOutputCoordinator.swift in Sources */,
+				A0000000000000000000007B /* SileroVADEngine.swift in Sources */,
+				A0000000000000000000008A /* SileroVADHysteresis.swift in Sources */,
+				A0000000000000000000005A /* SourceCatalogService.swift in Sources */,
+				A00000000000000000000068 /* SpeedMonitor.swift in Sources */,
+				A0000000000000000000005B /* OverlayView.swift in Sources */,
+				A0000000000000000000005C /* OverlayWindowController.swift in Sources */,
+				A0000000000000000000008C /* QuickSettingsControls.swift in Sources */,
+				A0000000000000000000005D /* SettingsView.swift in Sources */,
+				A0000000000000000000005E /* SettingsWindowController.swift in Sources */,
+				A00000000000000000000079 /* TranscriptView.swift in Sources */,
+				A0000000000000000000008E /* PopoverOutsideClickMonitor.swift in Sources */,
+				A0000000000000000000005F /* StatusBarController.swift in Sources */,
+				A00000000000000000000060 /* StatusBarPopoverView.swift in Sources */,
+				A00000000000000000000061 /* LiveTranscriptionSession.swift in Sources */,
+				A00000000000000000000094 /* LaunchAtLoginService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A00000000000000000000016 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A00000000000000000000017 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A00000000000000000000018 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.Techeek.TranslaMic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A00000000000000000000019 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.Techeek.TranslaMic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00000000000000000000004 /* Build configuration list for PBXProject "TranslaMic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000016 /* Debug */,
+				A00000000000000000000017 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000006 /* Build configuration list for PBXNativeTarget "TranslaMic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000018 /* Debug */,
+				A00000000000000000000019 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A0000000000000000000007F /* onnxruntime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A0000000000000000000007E /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */;
+			productName = onnxruntime;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A00000000000000000000001 /* Project object */;
+}

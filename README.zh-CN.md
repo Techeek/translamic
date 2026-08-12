@@ -1,87 +1,55 @@
-# v2s
+# TranslaMic（译麦）
 
-<p align="center">
-  <img src="Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" alt="v2s 应用图标" width="256" height="256">
-</p>
+TranslaMic 是一款面向 Apple Silicon Mac 的开源会议翻译工具。它监听麦克风或指定应用的音频，使用 Apple 自带能力完成语音识别与翻译，再把目标语言语音送入虚拟麦克风，供腾讯会议、Zoom、Teams 等会议软件选择使用。
 
-<p align="center">
-  <strong>macOS 上适用于会议、通话、直播和视频的实时双语字幕。</strong>
-</p>
+> 当前状态：`0.1.0` MVP。应用和驱动已经可以编译，但安装后的会议软件兼容性仍需逐项实机验证。
 
-<p align="center">
-  v2s 可以将麦克风输入或指定应用的音频转换成简洁的双行字幕条，让你在不离开当前屏幕的情况下，一边听原语言，一边看目标语言字幕。
-</p>
+## 工作流程
 
-<p align="center">
-  <a href="https://franklioxygen.github.io/v2s/">官网</a>
-  ·
-  <a href="README.md">English Doc</a>
-</p>
+1. Apple Speech 在本机将麦克风或应用音频转成文字。
+2. Apple Translation 在本机生成目标语言文本。
+3. `AVSpeechSynthesizer` 使用 macOS 系统语音生成目标语言音频。
+4. 基于 Apple Audio Server Driver 示例改造的 `TranslaMic Virtual Microphone`，把音频作为麦克风输入提供给其他应用。
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/b65167ee-ae7e-4e37-8316-ebd200ae89a7" alt="Mar-20-2026 11-08-59">
-</p>
+项目保留了上游 [v2s](https://github.com/franklioxygen/v2s) 的双语字幕、悬浮字幕和转写记录功能。
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/449039ee-c329-426e-a55b-ab6660c56ca7" alt="Screenshot 2026-03-25 at 1 10 39 PM" width="500">
-</p>
+## 系统要求
 
-## 功能特性
+- macOS 26 或更高版本
+- Apple Silicon
+- 从源码构建时需要 Xcode 26 或更高版本
 
-- **菜单栏常驻应用**：启动后常驻于 macOS 菜单栏，随时可打开和控制字幕。
-- **双语字幕悬浮条**：第一行显示翻译结果，第二行显示原始语音文本，便于快速对照。
-- **灵活的音频输入**：既可使用麦克风，也可只捕获某个正在运行的 macOS 应用音频。
-- **本地语音转写**：基于 Apple SpeechAnalyzer 进行语音识别。
-- **本地翻译**：基于 Apple Translation 框架进行翻译处理。
-- **AI 摘要**：基于 Apple Intelligence 对字幕记录进行智能摘要，快速掌握对话要点。
-- **可调节的字幕样式**：支持调整悬浮条样式，保证字幕在真实工作场景中依然清晰可读。
+## 安装未签名开发版
 
-## 输入语言
+从 GitHub Releases 下载 `translamic-x.y.z.pkg` 并安装，然后重启 macOS，让 Core Audio 加载虚拟设备。安装包只包含：
 
-v2s 的输入语言列表仅包含 Apple SpeechAnalyzer/SpeechTranscriber 路径支持的语言。界面不会暴露地区变体；v2s 会为每种语言选择一个默认支持地区。
+- `/Applications/TranslaMic.app`
+- `/Library/Audio/Plug-Ins/HAL/TranslaMicVirtualAudio.driver`
 
-支持的输入语言：粤语、简体中文、英语、法语、德语、意大利语、日语、韩语、葡萄牙语和西班牙语。
+当前安装包没有 Developer ID 签名，也没有公证；包内应用和驱动仅使用无需开发者账号的本地 ad-hoc 签名。macOS 仍可能阻止安装或首次运行。请只安装来自你信任的 GitHub Release；Developer ID 签名与公证留到正式发布阶段处理。
 
-## 隐私保护
-
-- 无需账号，也没有云端后台、分析或遥测。
-- 音频和字幕文本不会通过 v2s 离开你的 Mac。
-- 翻译依赖 Apple 的本地 Translation 框架，部分语言包可能需要先在系统设置中下载。
-- 语音识别依赖 Apple 的本地 SpeechAnalyzer/SpeechTranscriber 资源，并仅面向上方列出的输入语言。
-
-## 快速开始
-
-1. 从 [Releases](https://github.com/franklioxygen/v2s/releases) 页面下载最新的 `.app.zip`。
-2. 解压后将 `v2s.app` 移动到 `Applications` 文件夹。
-3. 启动 v2s，它会以图标形式出现在菜单栏中。
-4. 选择输入源：麦克风或某个正在运行的应用。
-5. 选择输入语言和字幕语言。
-6. 点击 **Start**。
-
-首次使用时，v2s 会请求以下权限：
-
-- **Speech Recognition**：用于将音频转写为文本。
-- **Microphone**：当输入源为麦克风时需要。
-- **Audio Capture**：当输入源为其他应用时需要。
-
-## 环境要求
-
-- 语音转写和翻译功能需要 macOS 26 或更高版本
+重启后，在 TranslaMic 设置中启用“虚拟麦克风”，再到会议软件中选择 **TranslaMic Virtual Microphone** 作为麦克风。
 
 ## 从源码构建
 
 ```bash
-git clone https://github.com/franklioxygen/v2s.git
-cd v2s
-open v2s.xcodeproj
+git clone https://github.com/Techeek/translamic.git
+cd translamic
+xcodebuild -project TranslaMic.xcodeproj -scheme TranslaMic -configuration Debug build
 ```
 
-也可以直接使用终端构建：
+生成唯一的未签名安装包：
 
 ```bash
-xcodebuild -project v2s.xcodeproj -scheme v2s -configuration Debug build
+./scripts/build-pkg.sh 0.1.0
 ```
 
-## 许可证
+输出文件为 `dist/translamic-0.1.0.pkg`。
 
-MIT
+## 隐私
+
+TranslaMic 不需要账号，不包含分析、遥测或项目方云端后台。语音识别、翻译和语音合成使用 macOS 能力；部分 Apple 语言资源可能需要提前下载。
+
+## 许可证与来源
+
+TranslaMic 采用 [MIT License](LICENSE) 开源，并基于 [franklioxygen/v2s](https://github.com/franklioxygen/v2s) 开发。虚拟音频驱动改编自 Apple 的“Creating an Audio Server Driver Plug-in”示例，许可声明见 `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`。

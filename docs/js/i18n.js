@@ -1,16 +1,16 @@
 (function (global) {
-  const STORAGE_KEY = "v2s-home-lang";
+  const STORAGE_KEY = "TranslaMic-home-lang";
 
   const strings = {
     en: {
       meta: {
-        title: "v2s — Live bilingual subtitles for macOS",
+        title: "TranslaMic — Live bilingual subtitles for macOS",
         description:
-          "v2s — live bilingual subtitles for meetings, calls, streams, and videos on macOS. On-device speech and translation, menu bar workflow, zero cloud.",
+          "TranslaMic — live bilingual subtitles for meetings, calls, streams, and videos on macOS. On-device speech and translation, menu bar workflow, zero cloud.",
       },
       a11y: {
         skip: "Skip to content",
-        brand: "v2s home",
+        brand: "TranslaMic home",
         nav: "Primary",
         menuOpen: "Open menu",
         menuClose: "Close menu",
@@ -28,16 +28,16 @@
       hero: {
         badgeOnDevice: "100% on-device",
         badgeMac: "macOS 26+",
-        title: "v2s: Live bilingual subtitles, never uploaded to the cloud.",
+        title: "TranslaMic: Live bilingual subtitles, never uploaded to the cloud.",
         lead:
-          "v2s turns microphone or app audio into a clean two-line subtitle bar for meetings, calls, streams, and videos. Hear the original language, read the translation, and stay on the window you already use.",
+          "TranslaMic turns microphone or app audio into a clean two-line subtitle bar for meetings, calls, streams, and videos. Hear the original language, read the translation, and stay on the window you already use.",
         ctaDownload: "Download for macOS",
         ctaQuickStart: "Quick start",
         ctaSource: "View source",
         demoTranslation: "Welcome back — glad you could join today's call.",
         demoSource: "欢迎回来，很高兴你能参加今天的通话。",
         demoWindow: "Zoom — Team standup",
-        imgAlt: "v2s subtitle overlay on a video call",
+        imgAlt: "TranslaMic subtitle overlay on a video call",
       },
       highlights: {
         h1Title: "Private by design",
@@ -78,7 +78,7 @@
         title: "Three steps from download to subtitles.",
         step1Title: "Install",
         step1Body:
-          "Download the latest release, unzip, and move <code>v2s.app</code> to Applications.",
+          "Download and install the latest <code>translamic-x.y.z.pkg</code>, then restart macOS.",
         step2Title: "Configure",
         step2Body:
           "Choose mic or app audio, set input and subtitle languages, grant permissions once.",
@@ -86,16 +86,16 @@
         step3Body:
           "Click Start in the menu bar — subtitles appear at the top of your screen in real time.",
         caption: "Menu bar controls and language settings",
-        imgAlt: "v2s settings and menu bar interface",
+        imgAlt: "TranslaMic settings and menu bar interface",
       },
       inputLangs: {
         eyebrow: "Input languages",
         title: "Ten languages on the Apple speech path.",
         lead:
-          "v2s lists only languages supported by SpeechAnalyzer/SpeechTranscriber. Regional variants are collapsed to Apple's default locale per language.",
+          "TranslaMic lists only languages supported by SpeechAnalyzer/SpeechTranscriber. Regional variants are collapsed to Apple's default locale per language.",
         noteBefore: "Subtitle (output) languages follow Apple Translation availability on your Mac. ",
         readmeLink: "Read the full README →",
-        readmeHref: "https://github.com/franklioxygen/v2s/blob/main/README.md",
+        readmeHref: "https://github.com/Techeek/translamic/blob/main/README.md",
         chipCantonese: "Cantonese",
         chipZh: "Chinese (Simplified)",
         chipEn: "English",
@@ -111,7 +111,7 @@
         eyebrow: "Privacy",
         title: "Your meeting stays on your machine.",
         li1: "No account, cloud backend, analytics, or telemetry",
-        li2: "Audio and subtitle text never leave your Mac through v2s",
+        li2: "Audio and subtitle text never leave your Mac through TranslaMic",
         li3: "Speech and translation use Apple's on-device frameworks",
         li4: "Permissions requested only for speech, mic, or app audio capture",
       },
@@ -119,10 +119,10 @@
         eyebrow: "Quick start",
         title: "From download to first subtitle in minutes.",
         s1Title: "Download",
-        s1Body: "Grab the latest <code>.app.zip</code> from GitHub Releases.",
+        s1Body: "Grab the latest <code>translamic-x.y.z.pkg</code> from GitHub Releases.",
         s2Title: "Install",
         s2Body:
-          "Unzip and drag <code>v2s.app</code> into Applications, then launch from the menu bar.",
+          "Install the package, restart macOS, then launch TranslaMic from the menu bar.",
         s3Title: "Build from source",
         s3Body: "Requires Xcode and macOS 26+ for speech and translation APIs.",
         copy: "Copy",
@@ -140,25 +140,25 @@
       },
       cta: {
         title: "Ready to follow every word?",
-        body: "Free, open source, and built for macOS. Download v2s and keep your conversations accessible.",
+        body: "Free, open source, and built for macOS. Download TranslaMic and keep your conversations accessible.",
         download: "Download latest",
         star: "Star on GitHub",
       },
       footer: {
         license: "MIT License · ",
         docLink: "中文文档",
-        docHref: "https://github.com/franklioxygen/v2s/blob/main/README.zh-CN.md",
+        docHref: "https://github.com/Techeek/translamic/blob/main/README.zh-CN.md",
       },
     },
     zh: {
       meta: {
-        title: "v2s — macOS 实时双语字幕",
+        title: "TranslaMic — macOS 实时双语字幕",
         description:
-          "v2s — 适用于会议、通话、直播和视频的 macOS 实时双语字幕。本地语音与翻译、菜单栏工作流、零云端。",
+          "TranslaMic — 适用于会议、通话、直播和视频的 macOS 实时双语字幕。本地语音与翻译、菜单栏工作流、零云端。",
       },
       a11y: {
         skip: "跳到正文",
-        brand: "v2s 首页",
+        brand: "TranslaMic 首页",
         nav: "主导航",
         menuOpen: "打开菜单",
         menuClose: "关闭菜单",
@@ -176,16 +176,16 @@
       hero: {
         badgeOnDevice: "100% 本地处理",
         badgeMac: "macOS 26+",
-        title: "v2s: 实时双语字幕，绝不上传云端。",
+        title: "TranslaMic: 实时双语字幕，绝不上传云端。",
         lead:
-          "v2s 将麦克风或应用音频转换为简洁的双行字幕条，适用于会议、通话、直播和视频。一边听原语言，一边读翻译，无需切换窗口。",
+          "TranslaMic 将麦克风或应用音频转换为简洁的双行字幕条，适用于会议、通话、直播和视频。一边听原语言，一边读翻译，无需切换窗口。",
         ctaDownload: "下载 macOS 版",
         ctaQuickStart: "快速开始",
         ctaSource: "查看源码",
         demoTranslation: "欢迎回来，很高兴你能参加今天的通话。",
         demoSource: "Welcome back — glad you could join today's call.",
         demoWindow: "Zoom — 团队站会",
-        imgAlt: "v2s 在视频会议上的字幕叠加效果",
+        imgAlt: "TranslaMic 在视频会议上的字幕叠加效果",
       },
       highlights: {
         h1Title: "隐私优先",
@@ -216,21 +216,21 @@
         eyebrow: "使用方式",
         title: "三步：从下载到字幕。",
         step1Title: "安装",
-        step1Body: "下载最新发布包，解压后将 <code>v2s.app</code> 移入「应用程序」。",
+        step1Body: "下载并安装最新 <code>translamic-x.y.z.pkg</code>，然后重启 macOS。",
         step2Title: "配置",
         step2Body: "选择麦克风或应用音频，设置输入与字幕语言，首次使用时授予权限。",
         step3Title: "开始",
         step3Body: "在菜单栏点击 Start — 字幕实时出现在屏幕顶部。",
         caption: "菜单栏控制与语言设置",
-        imgAlt: "v2s 设置界面与菜单栏",
+        imgAlt: "TranslaMic 设置界面与菜单栏",
       },
       inputLangs: {
         eyebrow: "输入语言",
         title: "Apple 语音路径支持的十种语言。",
-        lead: "v2s 仅列出 SpeechAnalyzer/SpeechTranscriber 支持的语言；地区变体合并为 Apple 的默认区域。",
+        lead: "TranslaMic 仅列出 SpeechAnalyzer/SpeechTranscriber 支持的语言；地区变体合并为 Apple 的默认区域。",
         noteBefore: "字幕（输出）语言取决于 Mac 上 Apple Translation 的可用性。 ",
         readmeLink: "阅读完整 README →",
-        readmeHref: "https://github.com/franklioxygen/v2s/blob/main/README.zh-CN.md",
+        readmeHref: "https://github.com/Techeek/translamic/blob/main/README.zh-CN.md",
         chipCantonese: "粤语",
         chipZh: "简体中文",
         chipEn: "英语",
@@ -246,7 +246,7 @@
         eyebrow: "隐私保护",
         title: "会议内容留在你的机器上。",
         li1: "无需账号、云端后台、分析或遥测",
-        li2: "音频与字幕文本不会通过 v2s 离开 Mac",
+        li2: "音频与字幕文本不会通过 TranslaMic 离开 Mac",
         li3: "语音与翻译使用 Apple 本地框架",
         li4: "仅在需要时请求语音、麦克风或应用音频捕获权限",
       },
@@ -254,9 +254,9 @@
         eyebrow: "快速开始",
         title: "几分钟内从下载到首条字幕。",
         s1Title: "下载",
-        s1Body: "从 GitHub Releases 获取最新 <code>.app.zip</code>。",
+        s1Body: "从 GitHub Releases 获取最新 <code>translamic-x.y.z.pkg</code>。",
         s2Title: "安装",
-        s2Body: "解压后将 <code>v2s.app</code> 拖入「应用程序」，从菜单栏启动。",
+        s2Body: "安装软件包并重启 macOS，然后从菜单栏启动 TranslaMic。",
         s3Title: "从源码构建",
         s3Body: "需要 Xcode 与 macOS 26+（语音与翻译 API）。",
         copy: "复制",
@@ -274,14 +274,14 @@
       },
       cta: {
         title: "准备好听懂每一句话？",
-        body: "免费开源，为 macOS 打造。下载 v2s，让对话更易理解。",
+        body: "免费开源，为 macOS 打造。下载 TranslaMic，让对话更易理解。",
         download: "下载最新版",
         star: "在 GitHub 标星",
       },
       footer: {
         license: "MIT 许可证 · ",
         docLink: "English Doc",
-        docHref: "https://github.com/franklioxygen/v2s/blob/main/README.md",
+        docHref: "https://github.com/Techeek/translamic/blob/main/README.md",
       },
     },
   };
@@ -346,7 +346,7 @@
       btn.setAttribute("aria-pressed", String(active));
     });
 
-    document.dispatchEvent(new CustomEvent("v2s:langchange", { detail: { lang: currentLang } }));
+    document.dispatchEvent(new CustomEvent("TranslaMic:langchange", { detail: { lang: currentLang } }));
   }
 
   function initLangToggle() {

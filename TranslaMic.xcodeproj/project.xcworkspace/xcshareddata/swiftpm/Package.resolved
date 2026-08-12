@@ -1,5 +1,5 @@
 {
-  "originHash" : "17b97ffa45cdadc0b43534b2d223db87d93f72c1effee06141d792dbe749122d",
+  "originHash" : "54a530a8a66c1ee0cc1c6dd34159a96243f09d436e10ae5178973082bff1ef28",
   "pins" : [
     {
       "identity" : "onnxruntime-swift-package-manager",

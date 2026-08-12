@@ -22,7 +22,7 @@
 
   if (i18n) {
     i18n.initLangToggle();
-    document.addEventListener("v2s:langchange", () => {
+    document.addEventListener("TranslaMic:langchange", () => {
       const open = toggle?.getAttribute("aria-expanded") === "true";
       setMenuAriaLabel(open);
       document.querySelectorAll(".copy-btn").forEach((btn) => {
