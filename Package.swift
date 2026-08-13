@@ -20,7 +20,7 @@ let package = Package(
             resources: [
                 .copy("Resources/AppIcon/AppIcon-512.png"),
                 .copy("Resources/silero_vad.onnx"),
-                .copy("Resources/QwenTTS"),
+                .copy("Resources/MossTTS"),
             ]
         ),
         .testTarget(

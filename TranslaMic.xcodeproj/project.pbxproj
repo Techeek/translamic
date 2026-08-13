@@ -46,8 +46,8 @@
 		A00000000000000000000090 /* SentenceBoundaryHeuristics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000091 /* SentenceBoundaryHeuristics.swift */; };
 		A00000000000000000000092 /* SpeechOutputCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000093 /* SpeechOutputCoordinator.swift */; };
 		A00000000000000000000094 /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000095 /* LaunchAtLoginService.swift */; };
-		A00000000000000000000096 /* QwenTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000097 /* QwenTTSService.swift */; };
-		A00000000000000000000098 /* QwenTTS in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000099 /* QwenTTS */; };
+		A00000000000000000000096 /* MossTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000097 /* MossTTSService.swift */; };
+		A00000000000000000000098 /* MossTTS in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000099 /* MossTTS */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -91,8 +91,8 @@
 		A00000000000000000000091 /* SentenceBoundaryHeuristics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentenceBoundaryHeuristics.swift; sourceTree = "<group>"; };
 		A00000000000000000000093 /* SpeechOutputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechOutputCoordinator.swift; sourceTree = "<group>"; };
 		A00000000000000000000095 /* LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginService.swift; sourceTree = "<group>"; };
-		A00000000000000000000097 /* QwenTTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QwenTTSService.swift; sourceTree = "<group>"; };
-		A00000000000000000000099 /* QwenTTS */ = {isa = PBXFileReference; lastKnownFileType = folder; path = QwenTTS; sourceTree = "<group>"; };
+		A00000000000000000000097 /* MossTTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MossTTSService.swift; sourceTree = "<group>"; };
+		A00000000000000000000099 /* MossTTS */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MossTTS; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,7 +168,7 @@
 		A00000000000000000000082 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				A00000000000000000000099 /* QwenTTS */,
+				A00000000000000000000099 /* MossTTS */,
 				A00000000000000000000081 /* silero_vad.onnx */,
 			);
 			path = Resources;
@@ -198,7 +198,7 @@
 				A00000000000000000000046 /* GlossaryService.swift */,
 				A00000000000000000000041 /* LiveTranscriptionSession.swift */,
 				A00000000000000000000095 /* LaunchAtLoginService.swift */,
-				A00000000000000000000097 /* QwenTTSService.swift */,
+				A00000000000000000000097 /* MossTTSService.swift */,
 				A00000000000000000000091 /* SentenceBoundaryHeuristics.swift */,
 				A00000000000000000000039 /* SettingsStore.swift */,
 				A00000000000000000000093 /* SpeechOutputCoordinator.swift */,
@@ -343,7 +343,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A00000000000000000000062 /* Assets.xcassets in Resources */,
-				A00000000000000000000098 /* QwenTTS in Resources */,
+				A00000000000000000000098 /* MossTTS in Resources */,
 				A00000000000000000000080 /* silero_vad.onnx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -391,7 +391,7 @@
 				A00000000000000000000060 /* StatusBarPopoverView.swift in Sources */,
 				A00000000000000000000061 /* LiveTranscriptionSession.swift in Sources */,
 				A00000000000000000000094 /* LaunchAtLoginService.swift in Sources */,
-				A00000000000000000000096 /* QwenTTSService.swift in Sources */,
+				A00000000000000000000096 /* MossTTSService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,7 +444,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.6;
+				MARKETING_VERSION = 0.2.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.Techeek.TranslaMic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -473,7 +473,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.6;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.Techeek.TranslaMic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

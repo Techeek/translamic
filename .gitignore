@@ -16,8 +16,12 @@ xcuserdata/
 
 # Swift Package Manager
 .build/
-Sources/TranslaMicApp/Resources/QwenTTS/uv
+Sources/TranslaMicApp/Resources/MossTTS/uv
 .swiftpm/
+
+# Python runtime artifacts
+__pycache__/
+*.pyc
 
 # Local app artifacts
 *.log

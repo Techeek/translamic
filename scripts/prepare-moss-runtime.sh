@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RUNTIME_DIR="$ROOT_DIR/Sources/TranslaMicApp/Resources/QwenTTS"
+RUNTIME_DIR="$ROOT_DIR/Sources/TranslaMicApp/Resources/MossTTS"
 UV_PATH="$RUNTIME_DIR/uv"
 UV_VERSION="0.11.7"
 UV_SHA256="66e37d91f839e12481d7b932a1eccbfe732560f42c1cfb89faddfa2454534ba8"

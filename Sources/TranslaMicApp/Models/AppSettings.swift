@@ -2,7 +2,16 @@ import Foundation
 
 enum SpeechSynthesisBackend: String, Codable, CaseIterable {
     case system
-    case qwen3
+    case mossNano
+
+    init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self)
+        switch value {
+        case Self.system.rawValue: self = .system
+        case Self.mossNano.rawValue, "qwen3": self = .mossNano
+        default: self = .system
+        }
+    }
 }
 
 struct AppSettings: Codable {
@@ -20,7 +29,7 @@ struct AppSettings: Codable {
     var virtualMicrophoneEnabled: Bool
     var speechVoiceIdentifiers: [String: String]
     var speechSynthesisBackend: SpeechSynthesisBackend
-    var qwenVoiceIdentifier: String
+    var mossVoiceIdentifier: String
 
     static let `default` = AppSettings(
         selectedSourceID: nil,
@@ -37,7 +46,7 @@ struct AppSettings: Codable {
         virtualMicrophoneEnabled: false,
         speechVoiceIdentifiers: [:],
         speechSynthesisBackend: .system,
-        qwenVoiceIdentifier: "vivian"
+        mossVoiceIdentifier: "Adam"
     )
 
     // Custom decoder so existing settings files load cleanly as new fields are added.
@@ -70,8 +79,8 @@ struct AppSettings: Codable {
             ?? AppSettings.default.speechVoiceIdentifiers
         speechSynthesisBackend = (try? c.decodeIfPresent(SpeechSynthesisBackend.self, forKey: .speechSynthesisBackend))
             ?? AppSettings.default.speechSynthesisBackend
-        qwenVoiceIdentifier = (try? c.decodeIfPresent(String.self, forKey: .qwenVoiceIdentifier))
-            ?? AppSettings.default.qwenVoiceIdentifier
+        mossVoiceIdentifier = (try? c.decodeIfPresent(String.self, forKey: .mossVoiceIdentifier))
+            ?? AppSettings.default.mossVoiceIdentifier
     }
 
     init(
@@ -89,7 +98,7 @@ struct AppSettings: Codable {
         virtualMicrophoneEnabled: Bool = false,
         speechVoiceIdentifiers: [String: String] = [:],
         speechSynthesisBackend: SpeechSynthesisBackend = .system,
-        qwenVoiceIdentifier: String = "vivian"
+        mossVoiceIdentifier: String = "Adam"
     ) {
         self.selectedSourceID = selectedSourceID
         self.selectedSourceIDs = selectedSourceIDs
@@ -105,6 +114,6 @@ struct AppSettings: Codable {
         self.virtualMicrophoneEnabled = virtualMicrophoneEnabled
         self.speechVoiceIdentifiers = speechVoiceIdentifiers
         self.speechSynthesisBackend = speechSynthesisBackend
-        self.qwenVoiceIdentifier = qwenVoiceIdentifier
+        self.mossVoiceIdentifier = mossVoiceIdentifier
     }
 }
