@@ -30,19 +30,19 @@ final class SpeechOutputCoordinator: NSObject {
         let languageID: String
         let voiceIdentifier: String?
         let backend: SpeechSynthesisBackend
-        let qwenVoiceIdentifier: String
+        let mossVoiceIdentifier: String
     }
 
     private let synthesizer = AVSpeechSynthesizer()
     private let previewSynthesizer = AVSpeechSynthesizer()
     private let audioRenderer = SpeechAudioRenderer(deviceUID: SpeechOutputCoordinator.virtualDeviceUID)
     private let previewAudioRenderer = SpeechAudioRenderer(deviceUID: nil)
-    private let qwenService = QwenTTSService()
+    private let mossService = MossTTSService()
     private var requests: [Request] = []
     private var activeRequest: Request?
     private var voiceIdentifiersByLanguageID: [String: String] = [:]
     private var backend: SpeechSynthesisBackend = .system
-    private var qwenVoiceIdentifier = "vivian"
+    private var mossVoiceIdentifier = "Adam"
     private var isEnabled = false
     private lazy var installedVoices = AVSpeechSynthesisVoice.speechVoices()
     private var voiceOptionsCache: [String: [SpeechVoiceOption]] = [:]
@@ -55,9 +55,9 @@ final class SpeechOutputCoordinator: NSObject {
 
     override init() {
         super.init()
-        qwenService.onStateChange = { [weak self] qwenState in
-            guard let self, self.backend == .qwen3 else { return }
-            switch qwenState {
+        mossService.onStateChange = { [weak self] mossState in
+            guard let self, self.backend == .mossNano else { return }
+            switch mossState {
             case .notInstalled: self.state = .installingVoiceEngine
             case .installingRuntime: self.state = .installingVoiceEngine
             case .downloadingModel: self.state = .downloadingVoiceModel
@@ -98,7 +98,7 @@ final class SpeechOutputCoordinator: NSObject {
             languageID: languageID,
             voiceIdentifier: voiceIdentifiersByLanguageID[languageID],
             backend: backend,
-            qwenVoiceIdentifier: qwenVoiceIdentifier
+            mossVoiceIdentifier: mossVoiceIdentifier
         ))
         startNextRequestIfNeeded()
     }
@@ -107,18 +107,18 @@ final class SpeechOutputCoordinator: NSObject {
         voiceIdentifiersByLanguageID = identifiers
     }
 
-    func setSynthesisBackend(_ backend: SpeechSynthesisBackend, qwenVoiceIdentifier: String) {
+    func setSynthesisBackend(_ backend: SpeechSynthesisBackend, mossVoiceIdentifier: String) {
         self.backend = backend
-        self.qwenVoiceIdentifier = qwenVoiceIdentifier
-        if backend == .qwen3 {
-            qwenService.prepare()
+        self.mossVoiceIdentifier = mossVoiceIdentifier
+        if backend == .mossNano {
+            mossService.prepare()
         } else if state != .disabled {
             refreshDeviceState()
         }
     }
 
-    func installQwenVoiceEngine() {
-        qwenService.install()
+    func installMossVoiceEngine() {
+        mossService.install()
     }
 
     func availableVoices(for languageID: String) -> [SpeechVoiceOption] {
@@ -164,12 +164,12 @@ final class SpeechOutputCoordinator: NSObject {
         let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard normalizedText.isEmpty == false else { return }
 
-        if backend == .qwen3 {
+        if backend == .mossNano {
             previewAudioRenderer.stop()
             let renderToken = previewAudioRenderer.begin { _ in }
-            qwenService.synthesize(
+            mossService.synthesize(
                 text: normalizedText,
-                voice: qwenVoiceIdentifier,
+                voice: mossVoiceIdentifier,
                 languageID: languageID,
                 onChunk: { [weak self] chunk in
                     guard let buffer = SpeechAudioRenderer.buffer(from: chunk) else {
@@ -186,7 +186,7 @@ final class SpeechOutputCoordinator: NSObject {
                     self.previewAudioRenderer.finish(token: renderToken)
                 case .failure(let error):
                     self.previewAudioRenderer.stop()
-                    if case .failed = self.qwenService.state {
+                    if case .failed = self.mossService.state {
                         self.fail(error.localizedDescription)
                     }
                 }
@@ -218,11 +218,11 @@ final class SpeechOutputCoordinator: NSObject {
         activeRequest = request
         state = .speaking
 
-        if request.backend == .qwen3 {
-            guard qwenService.state == .ready else {
+        if request.backend == .mossNano {
+            guard mossService.state == .ready else {
                 requests.insert(request, at: 0)
                 activeRequest = nil
-                qwenService.prepare()
+                mossService.prepare()
                 return
             }
             let renderToken = audioRenderer.begin { [weak self] playbackResult in
@@ -233,9 +233,9 @@ final class SpeechOutputCoordinator: NSObject {
                     }
                 }
             }
-            qwenService.synthesize(
+            mossService.synthesize(
                 text: request.text,
-                voice: request.qwenVoiceIdentifier,
+                voice: request.mossVoiceIdentifier,
                 languageID: request.languageID,
                 onChunk: { [weak self] chunk in
                     guard let buffer = SpeechAudioRenderer.buffer(from: chunk) else {
@@ -329,16 +329,16 @@ final class SpeechOutputCoordinator: NSObject {
         synthesizer.stopSpeaking(at: .immediate)
         audioRenderer.stop()
         previewAudioRenderer.stop()
-        qwenService.stop()
+        mossService.stop()
         state = .failed(message)
     }
 
-    private func log(_ metrics: QwenSynthesisMetrics, context: String) {
+    private func log(_ metrics: MossSynthesisMetrics, context: String) {
         let firstAudio = metrics.firstAudioLatency.map { String(format: "%.2f", $0) } ?? "n/a"
         let total = metrics.totalLatency.map { String(format: "%.2f", $0) } ?? "n/a"
         let duration = metrics.audioDuration.map { String(format: "%.2f", $0) } ?? "n/a"
         NSLog(
-            "TranslaMic Qwen3-TTS %@: first audio=%@s, generation=%@s, audio=%@s, chunks=%d",
+            "TranslaMic MOSS-TTS-Nano %@: first audio=%@s, generation=%@s, audio=%@s, chunks=%d",
             context,
             firstAudio,
             total,
@@ -626,7 +626,7 @@ final class SpeechAudioRenderer: @unchecked Sendable {
         return destination
     }
 
-    static func buffer(from chunk: QwenAudioChunk) -> AVAudioPCMBuffer? {
+    static func buffer(from chunk: MossAudioChunk) -> AVAudioPCMBuffer? {
         guard chunk.sampleRate > 0, chunk.pcmData.count >= 2 else { return nil }
         let frameCount = chunk.pcmData.count / MemoryLayout<Int16>.size
         guard let format = AVAudioFormat(

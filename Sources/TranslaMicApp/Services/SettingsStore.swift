@@ -17,7 +17,14 @@ final class SettingsStore {
     func load() -> AppSettings {
         do {
             let data = try Data(contentsOf: fileURL)
-            return try JSONDecoder().decode(AppSettings.self, from: data)
+            let settings = try JSONDecoder().decode(AppSettings.self, from: data)
+            if let rawSettings = String(data: data, encoding: .utf8),
+               rawSettings.contains("\"qwen3\"") || rawSettings.contains("\"qwenVoiceIdentifier\"") {
+                // Keep the decoder compatible with previous releases, then
+                // rewrite the file once so no obsolete Qwen setting remains.
+                save(settings)
+            }
+            return settings
         } catch {
             let nsError = error as NSError
             if nsError.domain != NSCocoaErrorDomain || nsError.code != NSFileReadNoSuchFileError {

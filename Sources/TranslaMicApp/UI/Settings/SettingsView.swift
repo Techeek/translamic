@@ -202,7 +202,7 @@ struct SettingsView: View {
                     settingsRow(model.virtualMicrophoneEngineTitle) {
                         Picker("", selection: $model.speechSynthesisBackend) {
                             Text(model.systemVoiceEngineTitle).tag(SpeechSynthesisBackend.system)
-                            Text(model.qwenVoiceEngineTitle).tag(SpeechSynthesisBackend.qwen3)
+                            Text(model.mossVoiceEngineTitle).tag(SpeechSynthesisBackend.mossNano)
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
@@ -210,9 +210,9 @@ struct SettingsView: View {
                     }
                     Divider()
                     settingsRow(model.virtualMicrophoneVoiceTitle) {
-                        if model.speechSynthesisBackend == .qwen3 {
-                            Picker("", selection: $model.qwenVoiceIdentifier) {
-                                ForEach(model.qwenVoiceOptions) { voice in
+                        if model.speechSynthesisBackend == .mossNano {
+                            Picker("", selection: $model.mossVoiceIdentifier) {
+                                ForEach(model.mossVoiceOptions) { voice in
                                     Text(voice.name).tag(voice.id)
                                 }
                             }

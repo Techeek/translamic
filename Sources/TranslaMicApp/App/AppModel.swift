@@ -6,8 +6,9 @@ import SwiftUI
 import Translation
 
 private enum AppBuildInfo {
-    static let marketingVersion = "0.1.6"
-    static let buildNumber = "7"
+    static let marketingVersion = Bundle.main.object(
+        forInfoDictionaryKey: "CFBundleShortVersionString"
+    ) as? String ?? "0.2.0"
     static let repositoryURLString = "https://github.com/Techeek/translamic"
     static let repositoryURL = URL(string: repositoryURLString)
 }
@@ -188,18 +189,18 @@ final class AppModel: ObservableObject {
             persistSettings()
             speechOutputCoordinator.setSynthesisBackend(
                 speechSynthesisBackend,
-                qwenVoiceIdentifier: qwenVoiceIdentifier
+                mossVoiceIdentifier: mossVoiceIdentifier
             )
         }
     }
 
-    @Published var qwenVoiceIdentifier: String {
+    @Published var mossVoiceIdentifier: String {
         didSet {
-            guard oldValue != qwenVoiceIdentifier else { return }
+            guard oldValue != mossVoiceIdentifier else { return }
             persistSettings()
             speechOutputCoordinator.setSynthesisBackend(
                 speechSynthesisBackend,
-                qwenVoiceIdentifier: qwenVoiceIdentifier
+                mossVoiceIdentifier: mossVoiceIdentifier
             )
         }
     }
@@ -238,7 +239,7 @@ final class AppModel: ObservableObject {
         self.virtualMicrophoneEnabled = settings.virtualMicrophoneEnabled
         self.speechVoiceIdentifiers = settings.speechVoiceIdentifiers
         self.speechSynthesisBackend = settings.speechSynthesisBackend
-        self.qwenVoiceIdentifier = settings.qwenVoiceIdentifier
+        self.mossVoiceIdentifier = settings.mossVoiceIdentifier
         self.virtualMicrophoneTestText = AppModel.virtualMicrophoneTestSample(
             languageID: settings.outputLanguageID
         )
@@ -254,7 +255,7 @@ final class AppModel: ObservableObject {
         speechOutputCoordinator.setVoiceIdentifiers(speechVoiceIdentifiers)
         speechOutputCoordinator.setSynthesisBackend(
             speechSynthesisBackend,
-            qwenVoiceIdentifier: qwenVoiceIdentifier
+            mossVoiceIdentifier: mossVoiceIdentifier
         )
 
         isBootstrapping = false
@@ -776,7 +777,7 @@ final class AppModel: ObservableObject {
             virtualMicrophoneEnabled: virtualMicrophoneEnabled,
             speechVoiceIdentifiers: speechVoiceIdentifiers,
             speechSynthesisBackend: speechSynthesisBackend,
-            qwenVoiceIdentifier: qwenVoiceIdentifier
+            mossVoiceIdentifier: mossVoiceIdentifier
         )
 
         settingsStore.save(settings)
@@ -1927,9 +1928,9 @@ final class AppModel: ObservableObject {
         case .installingVoiceEngine:
             return usesChinese ? "正在安装高品质语音引擎…" : "Installing high-quality voice engine…"
         case .downloadingVoiceModel:
-            return usesChinese ? "正在下载 Qwen3-TTS 模型（约 2.5 GB）…" : "Downloading Qwen3-TTS model (about 2.5 GB)…"
+            return usesChinese ? "正在下载 MOSS-TTS-Nano 模型（约 730 MB）…" : "Downloading MOSS-TTS-Nano model (about 730 MB)…"
         case .loadingVoiceModel:
-            return usesChinese ? "正在加载 Qwen3-TTS 模型…" : "Loading Qwen3-TTS model…"
+            return usesChinese ? "正在加载 MOSS-TTS-Nano 模型…" : "Loading MOSS-TTS-Nano model…"
         case .ready:
             return usesChinese ? "已就绪" : "Ready"
         case .speaking:
@@ -1971,11 +1972,11 @@ final class AppModel: ObservableObject {
         resolvedInterfaceLanguageID.hasPrefix("zh") ? "macOS 系统语音（低延迟）" : "macOS System Voice (Low Latency)"
     }
 
-    var qwenVoiceEngineTitle: String {
-        resolvedInterfaceLanguageID.hasPrefix("zh") ? "Qwen3-TTS（高品质，本地）" : "Qwen3-TTS (High Quality, Local)"
+    var mossVoiceEngineTitle: String {
+        resolvedInterfaceLanguageID.hasPrefix("zh") ? "MOSS-TTS-Nano（低延迟，本地）" : "MOSS-TTS-Nano (Low Latency, Local)"
     }
 
-    var qwenVoiceOptions: [QwenVoiceOption] { QwenVoiceOption.all }
+    var mossVoiceOptions: [MossVoiceOption] { MossVoiceOption.all }
 
     var virtualMicrophoneAutomaticVoiceTitle: String {
         resolvedInterfaceLanguageID.hasPrefix("zh") ? "自动（系统默认）" : "Automatic (System Default)"

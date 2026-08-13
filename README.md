@@ -8,7 +8,7 @@ TranslaMic is an open-source, real-time voice translator for Apple Silicon Macs.
 
 In addition to letting you speak one language while the meeting hears another, TranslaMic provides bilingual captions, a floating subtitle overlay, a glossary, and session transcripts.
 
-> Current version: `0.1.6` MVP. macOS 26+ and Apple Silicon only. Development builds are not yet signed with Developer ID or notarized by Apple, and meeting-app compatibility still requires per-app testing.
+> Current version: `0.2.0` usable preview. macOS 26+ and Apple Silicon only. The core transcription, translation, MOSS streaming speech, and virtual-microphone path is working; the installer is not yet signed with Developer ID or notarized by Apple, and meeting-app compatibility still requires per-app testing.
 
 [简体中文](README.zh-CN.md)
 
@@ -17,7 +17,7 @@ In addition to letting you speak one language while the meeting hears another, T
 - Transcribe a microphone or selected application's audio in real time.
 - Translate text locally with Apple Translation.
 - Speak translated text into `TranslaMic Virtual Microphone`.
-- Choose between macOS system voices and the optional Qwen3-TTS engine.
+- Choose between macOS system voices and the optional low-latency MOSS-TTS-Nano engine.
 - Show source text, translated text, or bilingual floating captions.
 - Keep a transcript of the current session.
 - Use a glossary for names, product terms, and specialized vocabulary.
@@ -27,7 +27,7 @@ In addition to letting you speak one language while the meeting hears another, T
 
 1. Apple Speech converts input audio to text on the Mac.
 2. Apple Translation produces text in the target language on the Mac.
-3. A macOS system voice or local Qwen3-TTS converts the translation into speech.
+3. A macOS system voice or local MOSS-TTS-Nano converts the translation into speech.
 4. A Core Audio virtual driver exposes that speech to other apps as microphone input.
 
 The virtual microphone carries synthesized translated speech, not the original microphone signal. Captions normally appear first; translated speech follows after translation and synthesis latency.
@@ -37,7 +37,7 @@ The virtual microphone carries synthesized translated speech, not the original m
 - macOS 26 or newer
 - Apple Silicon (M-series chip)
 - Ability to restart the Mac after driver installation
-- An initial internet download of about 2.5 GB when using Qwen3-TTS
+- An initial internet download of about 730 MB of model weights when using MOSS-TTS-Nano
 - Xcode 26 or newer when building from source
 
 Intel Macs and macOS 25 or earlier are not supported. A Mac App Store release is not planned.
@@ -58,7 +58,7 @@ The package installs:
 
 The current `.pkg` is not signed with Developer ID and is not notarized. Its app and driver use local ad-hoc signatures that do not require an Apple Developer account. macOS may block installation or the first launch.
 
-Install only builds from a source you trust. If macOS blocks the app, open System Settings → Privacy & Security, verify that the blocked application is TranslaMic, and then allow it to open. Developer ID signing and notarization will be considered before a formal release.
+Install only builds from a source you trust. If macOS blocks the app, open System Settings → Privacy & Security, verify that the blocked application is TranslaMic, and then allow it to open. Developer ID signing and notarization will be considered before a future stable release.
 
 ## Quick start
 
@@ -94,17 +94,17 @@ Click **Start** in TranslaMic. As you speak, the app transcribes, translates, di
 | Engine | Characteristics | Best for | Considerations |
 | --- | --- | --- | --- |
 | macOS System Voice | Fast startup, low latency, no additional model | Live meetings and stability-first use | Naturalness depends on installed system voices |
-| Qwen3-TTS 0.6B | More natural speech and nine regular human voices, with local inference | Demos and non-real-time previews | About 2.5 GB on first download; the full sentence must currently be generated before playback, so latency is high and it is not recommended for live meetings |
+| MOSS-TTS-Nano ONNX | Low-latency local synthesis, 17 regular built-in voices and multilingual voice transfer | Live meetings and natural-voice previews | About 730 MB of model weights on first download; uses two CPU threads and starts playback after a 500 ms buffer |
 
-When Qwen3-TTS is selected, TranslaMic prepares an isolated runtime and downloads a pinned model revision in the background. The UI remains responsive. After loading, it performs one silent warmup and a separate long-lived process keeps the model in memory so it is not reloaded for every sentence. To preserve intelligibility and reliable output, the current version generates a complete sentence before playing it through the speaker or virtual microphone.
+When MOSS-TTS-Nano is selected, TranslaMic prepares an isolated runtime and downloads pinned ONNX model revisions in the background. The UI remains responsive. After loading, it performs one silent warmup and a separate long-lived process keeps the model in memory. Each committed translation sentence is submitted as a whole, while decoded PCM is streamed continuously after a 500 ms initial buffer. Text is never split into character-level TTS requests.
 
-Qwen runtime files are stored in:
+MOSS runtime files are stored in:
 
 ```text
-~/Library/Application Support/TranslaMic/Qwen3TTS
+~/Library/Application Support/TranslaMic/MossTTS
 ```
 
-Generating a complete sentence with Qwen3-TTS currently takes several seconds on the local Mac, so overall latency is high. The project is evaluating other open-source models, quantized models, and speech-generation approaches. Until an option provides both acceptable quality and low latency, use the macOS engine for live meetings and treat Qwen3-TTS as an experimental natural-voice option.
+On an Apple M2 test machine, warm MOSS-TTS-Nano synthesis ran faster than playback in English and Japanese, with audio beginning after the initial buffer. Actual end-to-end delay still includes speech recognition, sentence commitment, and translation. The macOS engine remains the lowest-resource fallback.
 
 ## Troubleshooting
 
@@ -120,13 +120,13 @@ Generating a complete sentence with Qwen3-TTS currently takes several seconds on
 - The test plays through the Mac's current speaker output, not through the meeting app.
 - Check system volume, the active output device, and that the test field is not empty.
 - Confirm that the selected voice matches the target language.
-- With Qwen3-TTS, wait until the status becomes **Ready** before testing again.
+- With MOSS-TTS-Nano, wait until the status becomes **Ready** before testing again.
 
-### Qwen3-TTS remains on downloading or loading
+### MOSS-TTS-Nano remains on downloading or loading
 
-- The initial model download is about 2.5 GB; keep the network connected and allow enough disk space.
+- The first setup downloads about 730 MB of model weights and installs an isolated runtime. The completed installation uses about 1.3 GB, so keep the network connected and reserve at least 1.5 GB of free space.
 - The first model load still takes time after the download finishes.
-- If the connection was interrupted, selecting Qwen3-TTS again or restarting the app will check and complete missing files.
+- If the connection was interrupted, selecting MOSS-TTS-Nano again or restarting the app will check and complete missing files.
 
 ### Captions work, but the meeting app receives no sound
 
@@ -137,36 +137,36 @@ Generating a complete sentence with Qwen3-TTS currently takes several seconds on
 
 ## Important notes and known limitations
 
-- This is still an MVP. Zoom, Teams, Tencent Meeting, and other apps require separate real-device compatibility testing.
-- Real-time translation always introduces latency. Qwen3-TTS currently waits for complete-sentence generation and has substantially higher latency than the macOS engine. Other low-latency approaches are under consideration.
+- This is a usable preview whose core path has passed local testing. Zoom, Teams, Tencent Meeting, and other apps should still be validated separately on real devices.
+- Real-time translation always introduces latency. MOSS-TTS-Nano streams decoded audio after a 500 ms buffer, but recognition, sentence commitment and translation happen before synthesis can begin.
 - Speech recognition, translation, and synthesis can be wrong. Do not rely on them as the only source for medical, legal, safety, or other high-risk instructions.
 - Changing a voice affects future speech only; it does not modify audio that has already been sent.
 - Speakers and an external microphone can create acoustic echo. Headphones are recommended during meetings.
-- App updates normally reuse the downloaded Qwen model, but a future model change may require additional disk space.
+- App updates normally reuse the downloaded MOSS models, but a future model change may require additional disk space.
 - Unsigned builds are intended for development and testing. Do not install one when you cannot verify its source.
 
 ## Privacy and network access
 
 TranslaMic requires no account and contains no project-operated analytics, telemetry, or cloud backend. The default workflow uses macOS speech recognition, translation, and system voice capabilities. macOS may download required Apple language resources.
 
-Only selecting Qwen3-TTS triggers downloads of the MLX-Audio runtime dependencies and a pinned open model. Qwen inference then runs locally on the Mac. See `Sources/TranslaMicApp/Resources/QwenTTS/THIRD_PARTY_NOTICES.md` for third-party notices.
+Only selecting MOSS-TTS-Nano triggers downloads of its isolated runtime and pinned open ONNX models. Inference then runs locally on the Mac. See `Sources/TranslaMicApp/Resources/MossTTS/THIRD_PARTY_NOTICES.md` for third-party notices.
 
 ## Build from source
 
 ```bash
 git clone https://github.com/Techeek/translamic.git
 cd translamic
-./scripts/prepare-qwen-runtime.sh
+/bin/bash ./scripts/prepare-moss-runtime.sh
 xcodebuild -project TranslaMic.xcodeproj -scheme TranslaMic -configuration Debug build
 ```
 
-The package build automatically prepares the Qwen runtime and creates the single unsigned installer artifact:
+The package build automatically prepares the MOSS runtime launcher and creates the single unsigned installer artifact:
 
 ```bash
-./scripts/build-pkg.sh 0.1.6
+./scripts/build-pkg.sh 0.2.0
 ```
 
-Output: `dist/translamic-0.1.6.pkg`.
+Output: `dist/translamic-0.2.0.pkg`.
 
 ## Acknowledgements
 
@@ -174,4 +174,4 @@ Special thanks to [Frank Li (franklioxygen)](https://github.com/franklioxygen) f
 
 ## License and attribution
 
-TranslaMic is released under the [MIT License](LICENSE) and is derived from [franklioxygen/v2s](https://github.com/franklioxygen/v2s). The virtual audio driver contains adapted code from Apple's “Creating an Audio Server Driver Plug-in” sample under the notice in `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`. See `Sources/TranslaMicApp/Resources/QwenTTS/THIRD_PARTY_NOTICES.md` for Qwen3-TTS, MLX-Audio, and uv notices.
+TranslaMic is released under the [MIT License](LICENSE) and is derived from [franklioxygen/v2s](https://github.com/franklioxygen/v2s). The virtual audio driver contains adapted code from Apple's “Creating an Audio Server Driver Plug-in” sample under the notice in `Drivers/TranslaMicVirtualAudio/APPLE_SAMPLE_LICENSE.txt`. See `Sources/TranslaMicApp/Resources/MossTTS/THIRD_PARTY_NOTICES.md` for MOSS-TTS-Nano, ONNX Runtime, and uv notices.

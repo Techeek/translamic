@@ -1,28 +1,36 @@
 import Foundation
 
-struct QwenVoiceOption: Identifiable, Equatable {
+struct MossVoiceOption: Identifiable, Equatable {
     let id: String
     let name: String
 
-    static let all: [QwenVoiceOption] = [
-        .init(id: "vivian", name: "Vivian · 中文女声"),
-        .init(id: "serena", name: "Serena · 中文女声"),
-        .init(id: "uncle_fu", name: "Uncle Fu · 中文男声"),
-        .init(id: "ryan", name: "Ryan · 英文男声"),
-        .init(id: "aiden", name: "Aiden · 英文男声"),
-        .init(id: "ono_anna", name: "Ono Anna · 日文女声"),
-        .init(id: "sohee", name: "Sohee · 韩文女声"),
-        .init(id: "eric", name: "Eric · 四川话男声"),
-        .init(id: "dylan", name: "Dylan · 北京话男声"),
+    static let all: [MossVoiceOption] = [
+        .init(id: "Adam", name: "Adam · English Male"),
+        .init(id: "Nathan", name: "Nathan · English Male"),
+        .init(id: "Ava", name: "Ava · English Female"),
+        .init(id: "Bella", name: "Bella · English Female"),
+        .init(id: "Junhao", name: "Junhao · 中文男声"),
+        .init(id: "Zhiming", name: "Zhiming · 中文男声"),
+        .init(id: "Weiguo", name: "Weiguo · 中文男声"),
+        .init(id: "Xiaoyu", name: "Xiaoyu · 中文女声"),
+        .init(id: "Yuewen", name: "Yuewen · 中文女声"),
+        .init(id: "Lingyu", name: "Lingyu · 中文女声"),
+        .init(id: "Saki", name: "Saki · 日本語女性"),
+        .init(id: "Soyo", name: "Soyo · 日本語女性"),
+        .init(id: "Mortis", name: "Mortis · 日本語女性"),
+        .init(id: "Umiri", name: "Umiri · 日本語女性"),
+        .init(id: "Mei", name: "Mei · 日本語女性"),
+        .init(id: "Anon", name: "Anon · 日本語女性"),
+        .init(id: "Arisa", name: "Arisa · 日本語女性"),
     ]
 }
 
-struct QwenAudioChunk: Sendable {
+struct MossAudioChunk: Sendable {
     let pcmData: Data
     let sampleRate: Double
 }
 
-struct QwenSynthesisMetrics: Sendable {
+struct MossSynthesisMetrics: Sendable {
     let firstAudioLatency: Double?
     let totalLatency: Double?
     let audioDuration: Double?
@@ -30,7 +38,7 @@ struct QwenSynthesisMetrics: Sendable {
 }
 
 @MainActor
-final class QwenTTSService {
+final class MossTTSService {
     enum State: Equatable {
         case notInstalled
         case installingRuntime
@@ -61,8 +69,8 @@ final class QwenTTSService {
     }
 
     private struct SynthesisHandlers {
-        let onChunk: (QwenAudioChunk) -> Void
-        let completion: (Result<QwenSynthesisMetrics, Error>) -> Void
+        let onChunk: (MossAudioChunk) -> Void
+        let completion: (Result<MossSynthesisMetrics, Error>) -> Void
     }
 
     private var worker: Process?
@@ -72,7 +80,7 @@ final class QwenTTSService {
 
     private var supportDirectory: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("TranslaMic/Qwen3TTS", isDirectory: true)
+        return base.appendingPathComponent("TranslaMic/MossTTS", isDirectory: true)
     }
 
     private var environmentDirectory: URL {
@@ -104,7 +112,7 @@ final class QwenTTSService {
     func install() {
         guard state != .installingRuntime, state != .downloadingModel else { return }
         guard let resources = bundledResources() else {
-            state = .failed("Qwen3-TTS 运行组件不完整，请重新安装 TranslaMic。")
+            state = .failed("MOSS-TTS-Nano 运行组件不完整，请重新安装 TranslaMic。")
             return
         }
 
@@ -131,12 +139,33 @@ final class QwenTTSService {
                             ],
                             environment: environment
                         )
+                        // The isolated environment is self-contained after installation.
+                        // Reclaim downloaded wheels and source archives so first-time setup
+                        // does not leave hundreds of megabytes of disposable cache behind.
+                        try? Self.run(
+                            resources.uv,
+                            arguments: ["cache", "clean"],
+                            environment: environment
+                        )
                         try Self.run(
                             resources.uv,
                             arguments: [
                                 "pip", "install", "--python",
                                 environmentDirectory.appendingPathComponent("bin/python3").path,
-                                "mlx-audio==0.4.8",
+                                "--no-deps",
+                                "git+https://github.com/OpenMOSS/MOSS-TTS-Nano.git@cc7bdf19c7639c0870dab22045a33b442760f6be",
+                            ],
+                            environment: environment
+                        )
+                        try Self.run(
+                            resources.uv,
+                            arguments: [
+                                "pip", "install", "--python",
+                                environmentDirectory.appendingPathComponent("bin/python3").path,
+                                "numpy>=1.24", "sentencepiece>=0.1.99",
+                                "torch==2.7.0", "torchaudio==2.7.0",
+                                "transformers==4.57.1", "soundfile",
+                                "onnxruntime>=1.20.0", "huggingface_hub",
                             ],
                             environment: environment
                         )
@@ -167,11 +196,11 @@ final class QwenTTSService {
         text: String,
         voice: String,
         languageID: String,
-        onChunk: @escaping (QwenAudioChunk) -> Void,
-        completion: @escaping (Result<QwenSynthesisMetrics, Error>) -> Void
+        onChunk: @escaping (MossAudioChunk) -> Void,
+        completion: @escaping (Result<MossSynthesisMetrics, Error>) -> Void
     ) {
         guard state == .ready, let workerInput else {
-            completion(.failure(QwenTTSError.notReady))
+            completion(.failure(MossTTSError.notReady))
             prepare()
             return
         }
@@ -181,7 +210,6 @@ final class QwenTTSService {
             "id": requestID,
             "text": text,
             "voice": voice,
-            "language": Self.qwenLanguage(for: languageID),
         ]
         do {
             var data = try JSONSerialization.data(withJSONObject: payload)
@@ -200,7 +228,7 @@ final class QwenTTSService {
         worker = nil
         workerInput = nil
         for handlers in synthesisHandlers.values {
-            handlers.completion(.failure(QwenTTSError.workerStopped))
+            handlers.completion(.failure(MossTTSError.workerStopped))
         }
         synthesisHandlers.removeAll()
     }
@@ -225,7 +253,7 @@ final class QwenTTSService {
         process.standardError = errorPipe
         process.terminationHandler = { [weak self] process in
             let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-            let message = String(data: errorData, encoding: .utf8) ?? "Qwen3-TTS process stopped."
+            let message = String(data: errorData, encoding: .utf8) ?? "MOSS-TTS-Nano process stopped."
             Task { @MainActor [weak self] in
                 guard let self, self.worker === process else { return }
                 self.worker = nil
@@ -266,10 +294,10 @@ final class QwenTTSService {
                   let sampleRate = event.sampleRate,
                   let encodedAudio = event.pcmBase64,
                   let pcmData = Data(base64Encoded: encodedAudio) else { return }
-            synthesisHandlers[id]?.onChunk(QwenAudioChunk(pcmData: pcmData, sampleRate: sampleRate))
+            synthesisHandlers[id]?.onChunk(MossAudioChunk(pcmData: pcmData, sampleRate: sampleRate))
         case "completed":
             guard let id = event.id else { return }
-            let metrics = QwenSynthesisMetrics(
+            let metrics = MossSynthesisMetrics(
                 firstAudioLatency: event.firstAudioLatency,
                 totalLatency: event.totalLatency,
                 audioDuration: event.audioDuration,
@@ -278,10 +306,10 @@ final class QwenTTSService {
             synthesisHandlers.removeValue(forKey: id)?.completion(.success(metrics))
         case "failed":
             guard let id = event.id else {
-                state = .failed(event.message ?? "Qwen3-TTS failed.")
+                state = .failed(event.message ?? "MOSS-TTS-Nano failed.")
                 return
             }
-            synthesisHandlers.removeValue(forKey: id)?.completion(.failure(QwenTTSError.synthesisFailed(event.message ?? "Unknown error")))
+            synthesisHandlers.removeValue(forKey: id)?.completion(.failure(MossTTSError.synthesisFailed(event.message ?? "Unknown error")))
         default:
             break
         }
@@ -289,11 +317,11 @@ final class QwenTTSService {
 
     private func bundledResources() -> (uv: URL, worker: URL)? {
         let candidates = [
-            Bundle.main.resourceURL?.appendingPathComponent("QwenTTS", isDirectory: true),
+            Bundle.main.resourceURL?.appendingPathComponent("MossTTS", isDirectory: true),
         ].compactMap { $0 }
         for directory in candidates {
             let uv = directory.appendingPathComponent("uv")
-            let worker = directory.appendingPathComponent("qwen_tts_worker.py")
+            let worker = directory.appendingPathComponent("moss_tts_worker.py")
             if FileManager.default.isExecutableFile(atPath: uv.path),
                FileManager.default.fileExists(atPath: worker.path) {
                 return (uv, worker)
@@ -308,18 +336,30 @@ final class QwenTTSService {
         environment: [String: String]
     ) throws {
         let process = Process()
-        let errorPipe = Pipe()
+        let logURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("translamic-moss-\(UUID().uuidString).log")
+        FileManager.default.createFile(atPath: logURL.path, contents: nil)
+        guard let logHandle = try? FileHandle(forWritingTo: logURL) else {
+            throw MossTTSError.setupFailed("Unable to create the setup log.")
+        }
+        defer {
+            try? logHandle.close()
+            try? FileManager.default.removeItem(at: logURL)
+        }
         process.executableURL = executable
         process.arguments = arguments
         process.environment = environment
-        process.standardOutput = errorPipe
-        process.standardError = errorPipe
+        // A file avoids blocking when model downloads emit more output than a
+        // pipe can hold while this synchronous helper waits for completion.
+        process.standardOutput = logHandle
+        process.standardError = logHandle
         try process.run()
         process.waitUntilExit()
         guard process.terminationStatus == 0 else {
-            let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            try? logHandle.synchronize()
+            let data = (try? Data(contentsOf: logURL)) ?? Data()
             let message = String(data: data, encoding: .utf8) ?? "Process failed."
-            throw QwenTTSError.setupFailed(message)
+            throw MossTTSError.setupFailed(message)
         }
     }
 
@@ -332,24 +372,9 @@ final class QwenTTSService {
         return environment
     }
 
-    nonisolated private static func qwenLanguage(for languageID: String) -> String {
-        switch languageID {
-        case "zh-Hans", "zh-Hant", "yue": return "chinese"
-        case "en": return "english"
-        case "de": return "german"
-        case "it": return "italian"
-        case "pt": return "portuguese"
-        case "es": return "spanish"
-        case "ja": return "japanese"
-        case "ko": return "korean"
-        case "fr": return "french"
-        case "ru": return "russian"
-        default: return "auto"
-        }
-    }
 }
 
-private enum QwenTTSError: LocalizedError {
+private enum MossTTSError: LocalizedError {
     case notReady
     case workerStopped
     case setupFailed(String)
@@ -357,10 +382,10 @@ private enum QwenTTSError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .notReady: return "Qwen3-TTS is not ready yet."
-        case .workerStopped: return "Qwen3-TTS process stopped."
-        case .setupFailed(let message): return "Qwen3-TTS setup failed: \(message)"
-        case .synthesisFailed(let message): return "Qwen3-TTS synthesis failed: \(message)"
+        case .notReady: return "MOSS-TTS-Nano is not ready yet."
+        case .workerStopped: return "MOSS-TTS-Nano process stopped."
+        case .setupFailed(let message): return "MOSS-TTS-Nano setup failed: \(message)"
+        case .synthesisFailed(let message): return "MOSS-TTS-Nano synthesis failed: \(message)"
         }
     }
 }

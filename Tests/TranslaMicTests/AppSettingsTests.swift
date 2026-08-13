@@ -35,7 +35,7 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertTrue(settings.sourceOutputLanguageOverrides.isEmpty)
         XCTAssertFalse(settings.virtualMicrophoneEnabled)
         XCTAssertEqual(settings.speechSynthesisBackend, .system)
-        XCTAssertEqual(settings.qwenVoiceIdentifier, "vivian")
+        XCTAssertEqual(settings.mossVoiceIdentifier, "Adam")
         XCTAssertTrue(settings.speechVoiceIdentifiers.isEmpty)
     }
 
@@ -54,8 +54,8 @@ final class AppSettingsTests: XCTestCase {
             glossary: ["CEO": "Chief Executive Officer"],
             virtualMicrophoneEnabled: true,
             speechVoiceIdentifiers: ["ja": "com.apple.voice.compact.ja-JP.Kyoko"],
-            speechSynthesisBackend: .qwen3,
-            qwenVoiceIdentifier: "ono_anna"
+            speechSynthesisBackend: .mossNano,
+            mossVoiceIdentifier: "Saki"
         )
 
         let data = try JSONEncoder().encode(settings)
@@ -77,7 +77,38 @@ final class AppSettingsTests: XCTestCase {
             decoded.speechVoiceIdentifiers,
             ["ja": "com.apple.voice.compact.ja-JP.Kyoko"]
         )
-        XCTAssertEqual(decoded.speechSynthesisBackend, .qwen3)
-        XCTAssertEqual(decoded.qwenVoiceIdentifier, "ono_anna")
+        XCTAssertEqual(decoded.speechSynthesisBackend, .mossNano)
+        XCTAssertEqual(decoded.mossVoiceIdentifier, "Saki")
+    }
+
+    func testLegacyQwenBackendMigratesToMossNano() throws {
+        let json = """
+        {
+          "inputLanguageID": "zh-Hans",
+          "outputLanguageID": "en",
+          "overlayStyle": {
+            "translatedFontSize": 20,
+            "sourceFontSize": 16,
+            "backgroundOpacity": 0.7,
+            "subtitleColor": { "kind": "defaultSubtitle" },
+            "textColor": { "kind": "defaultText" },
+            "backgroundColor": { "kind": "defaultBackground" },
+            "showsTextOutline": true,
+            "textOutlineColor": { "kind": "defaultTextOutline" },
+            "attachToSource": true,
+            "translatedFirst": true
+          },
+          "subtitleMode": "balanced",
+          "subtitleDisplayMode": "both",
+          "glossary": {},
+          "speechSynthesisBackend": "qwen3",
+          "qwenVoiceIdentifier": "ryan"
+        }
+        """
+
+        let settings = try JSONDecoder().decode(AppSettings.self, from: Data(json.utf8))
+
+        XCTAssertEqual(settings.speechSynthesisBackend, .mossNano)
+        XCTAssertEqual(settings.mossVoiceIdentifier, "Adam")
     }
 }
